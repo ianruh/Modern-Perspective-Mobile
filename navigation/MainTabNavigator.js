@@ -1,11 +1,19 @@
 import React from 'react';
 import { Platform } from 'react-native';
-import { createStackNavigator, createBottomTabNavigator } from 'react-navigation';
+import {
+  createStackNavigator,
+  createBottomTabNavigator,
+} from 'react-navigation';
 
 import TabBarIcon from '../components/TabBarIcon';
 import HomeScreen from '../screens/HomeScreen';
-import LinksScreen from '../screens/LinksScreen';
+import MainScreen from '../screens/MainScreen';
 import SettingsScreen from '../screens/SettingsScreen';
+import ImageScreen from '../screens/ImageScreen';
+import CameraScreen from '../screens/CameraScreen';
+import ProfileScreen from '../screens/ProfileScreen';
+import NewImageScreen from '../screens/NewImageScreen';
+import NewSnapshotScreen from '../screens/NewSnapshotScreen';
 
 const HomeStack = createStackNavigator({
   Home: HomeScreen,
@@ -25,17 +33,19 @@ HomeStack.navigationOptions = {
   ),
 };
 
-const LinksStack = createStackNavigator({
-  Links: LinksScreen,
+const MainStack = createStackNavigator({
+  Main: MainScreen,
+  Image: ImageScreen,
+  Profile: ProfileScreen,
+  CameraPush: CameraScreen,
+  NewImage: NewImageScreen,
+  NewSnapshot: NewSnapshotScreen,
 });
 
-LinksStack.navigationOptions = {
-  tabBarLabel: 'Links',
+MainStack.navigationOptions = {
+  tabBarLabel: 'Near',
   tabBarIcon: ({ focused }) => (
-    <TabBarIcon
-      focused={focused}
-      name={Platform.OS === 'ios' ? 'ios-link' : 'md-link'}
-    />
+    <TabBarIcon focused={focused} type="Entypo" name="location-pin" />
   ),
 };
 
@@ -54,7 +64,7 @@ SettingsStack.navigationOptions = {
 };
 
 export default createBottomTabNavigator({
+  MainStack,
   HomeStack,
-  LinksStack,
   SettingsStack,
 });

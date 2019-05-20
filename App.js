@@ -1,12 +1,25 @@
 import React from 'react';
 import { Platform, StatusBar, StyleSheet, View } from 'react-native';
-import { AppLoading, Asset, Font, Icon } from 'expo';
+import {
+  AppLoading,
+  Asset,
+  Font,
+  Icon,
+  Constants,
+  ScreenOrientation,
+} from 'expo';
 import AppNavigator from './navigation/AppNavigator';
 
 export default class App extends React.Component {
   state = {
     isLoadingComplete: false,
   };
+
+  componentWillMount() {
+    // if (Constants.platform.ios.userInterfaceIdiom === 'tablet') {
+    //   ScreenOrientation.allowAsync(ScreenOrientation.Orientation.ALL);
+    // }
+  }
 
   render() {
     if (!this.state.isLoadingComplete && !this.props.skipLoadingScreen) {
@@ -21,6 +34,7 @@ export default class App extends React.Component {
       return (
         <View style={styles.container}>
           {Platform.OS === 'ios' && <StatusBar barStyle="default" />}
+          {Platform.OS === 'android' && <View style={styles.statusSpacer} />}
           <AppNavigator />
         </View>
       );
@@ -39,6 +53,8 @@ export default class App extends React.Component {
         // We include SpaceMono because we use it in HomeScreen.js. Feel free
         // to remove this if you are not using it in your app
         'space-mono': require('./assets/fonts/SpaceMono-Regular.ttf'),
+        Roboto: require('native-base/Fonts/Roboto.ttf'),
+        Roboto_medium: require('native-base/Fonts/Roboto_medium.ttf'),
       }),
     ]);
   };
@@ -58,5 +74,8 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: '#fff',
+  },
+  statusSpacer: {
+    height: Constants.statusBarHeight,
   },
 });
