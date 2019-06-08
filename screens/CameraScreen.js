@@ -11,7 +11,6 @@ import {
 import { Grid, Col, Button, Icon, ActionSheet, Root } from 'native-base';
 import Backend from '../data/backend';
 import { Camera, Permissions, ScreenOrientation, Constants } from 'expo';
-import { Header } from 'react-navigation';
 
 export default class CameraScreen extends React.Component {
   static navigationOptions = {
@@ -119,11 +118,11 @@ export default class CameraScreen extends React.Component {
         base64: true,
       })
       .then(data => {
-        target_image = 'data:image/jpg;base64,' + data.base64;
-        new_snapshot = {
+        targetImage = 'data:image/jpg;base64,' + data.base64;
+        newSnapshot = {
           date: this.formatDate(new Date()),
           source: '',
-          target_image: target_image,
+          targetImage: targetImage,
           imageId: this.state.image.id,
           userId: this.state.user.id,
         };
@@ -187,7 +186,7 @@ export default class CameraScreen extends React.Component {
                   <Image
                     source={{
                       uri: this.state.snapshots[this.state.selectedSnapIndex]
-                        .target_image,
+                        .targetImage,
                     }}
                     style={{
                       flex: 1,

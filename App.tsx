@@ -10,7 +10,11 @@ import {
 } from 'expo';
 import AppNavigator from './navigation/AppNavigator';
 
-export default class App extends React.Component {
+interface Props extends React.Props<any> {
+  skipLoadingScreen: any;
+}
+
+export default class App extends React.Component<Props, any> {
   state = {
     isLoadingComplete: false,
   };

@@ -100,7 +100,7 @@ export default class NewImageScreen extends React.Component {
     const snapshot = {
       date: this.formatDate(new Date()),
       source: '',
-      target_image: imageUri,
+      targetImage: imageUri,
       imageId: null,
       userId: user.userId,
     };
@@ -210,7 +210,7 @@ export default class NewImageScreen extends React.Component {
             <Grid>
               <Row>
                 <Image
-                  source={{ uri: this.state.snapshot.target_image }}
+                  source={{ uri: this.state.snapshot.targetImage }}
                   style={{ height: 200, width: styles.windowSize.width }}
                 />
               </Row>

@@ -45,7 +45,7 @@ const MainStack = createStackNavigator({
 MainStack.navigationOptions = {
   tabBarLabel: 'Near',
   tabBarIcon: ({ focused }) => (
-    <TabBarIcon focused={focused} type="Entypo" name="location-pin" />
+    <TabBarIcon focused={focused} name="ios-locate" />
   ),
 };
 

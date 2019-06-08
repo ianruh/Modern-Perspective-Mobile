@@ -1,6 +1,5 @@
 import React from 'react';
 import { ScrollView, StyleSheet, Text } from 'react-native';
-import { ExpoLinksView } from '@expo/samples';
 import {
   Container,
   Header,
@@ -18,7 +17,11 @@ import ImageCardLarge from '../components/ImageCardLarge';
 import Backend from '../data/backend';
 import { ImagePicker, Permissions, FileSystem } from 'expo';
 
-export default class MainScreen extends React.Component {
+interface Props extends React.Props<any> {
+  navigation: any;
+}
+
+export default class MainScreen extends React.Component<Props, any> {
   static navigationOptions = {
     header: null,
   };
@@ -30,7 +33,7 @@ export default class MainScreen extends React.Component {
   };
 
   async componentDidMount() {
-    Backend.getUser(1).then(user => {
+    Backend.getUser('1').then(user => {
       this.setState({ user });
     });
     Backend.queryImages(null).then(images => {
@@ -69,7 +72,7 @@ export default class MainScreen extends React.Component {
   };
 
   pickImage = async () => {
-    const { cancelled, uri } = await Expo.ImagePicker.launchImageLibraryAsync();
+    const { cancelled, uri } = await ImagePicker.launchImageLibraryAsync();
     if (!cancelled && this.state.user) {
       FileSystem.readAsStringAsync(uri, {
         encoding: FileSystem.EncodingTypes.Base64,
@@ -83,6 +86,10 @@ export default class MainScreen extends React.Component {
   };
 
   render() {
+    // if (this.state.images) {
+    //   const state = this.state;
+    //   debugger;
+    // }
     return (
       <Root>
         <Container>
@@ -98,17 +105,12 @@ export default class MainScreen extends React.Component {
                 primary
                 onPress={this.showActionSheet}
               >
-                <Icon
-                  size={10}
-                  style={styles.optionIcons}
-                  type="AntDesign"
-                  name="plus"
-                />
+                <Icon style={styles.optionIcons} type="AntDesign" name="plus" />
               </Button>
             </Right>
           </Header>
           {this.state.images && (
-            <Content>
+            <ScrollView>
               {this.state.images.map(item => {
                 return (
                   <ImageCardLarge
@@ -118,7 +120,7 @@ export default class MainScreen extends React.Component {
                   />
                 );
               })}
-            </Content>
+            </ScrollView>
           )}
           {!this.state.images && <Text>Loading...</Text>}
         </Container>
@@ -135,4 +137,5 @@ const styles = StyleSheet.create({
     paddingRight: 8,
     backgroundColor: '#fff',
   },
+  optionIcons: {},
 });

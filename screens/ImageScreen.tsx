@@ -26,7 +26,11 @@ import { MapView } from 'expo';
 import UserCard from '../components/UserCard';
 import Backend from '../data/backend';
 
-export default class ImageScreen extends React.Component {
+interface Props extends React.Props<any> {
+  navigation: any;
+}
+
+export default class ImageScreen extends React.Component<Props, any> {
   static navigationOptions = {
     header: null,
   };
@@ -44,8 +48,8 @@ export default class ImageScreen extends React.Component {
           source={{
             uri:
               this.state.snapshots[index] &&
-              this.state.snapshots[index].target_image
-                ? this.state.snapshots[index].target_image
+              this.state.snapshots[index].targetImage
+                ? this.state.snapshots[index].targetImage
                 : 'data:image/jpg;base64,',
           }}
           containerStyle={{ width: styles.windowSize.width, height: 200 }}
@@ -93,26 +97,26 @@ export default class ImageScreen extends React.Component {
   };
 
   componentDidMount() {
-    const image = this.props.navigation.getParam('image', '');
-    const user = this.props.navigation.getParam('user', '');
-    if (this.state.image) {
-      image.snapshots.map(id => {
+    const imageId = this.props.navigation.getParam('imageId', '');
+    Backend.getImage(imageId).then(imageWeird => {
+      const image: any = imageWeird;
+      image.snapshots.forEach(id => {
         this.loadSnapshot(id);
       });
-      this.setState({ image, user });
-    } else {
-      Backend.getImage(this.props.navigation.getParam('imageId', '0')).then(
-        image => {
-          Backend.getUser(image.userId).then(user => {
-            this.setState({ user });
-          });
-          image.snapshots.map(id => {
-            this.loadSnapshot(id);
-          });
-          this.setState({ image });
-        }
-      );
-    }
+      this.setState({ image });
+      Backend.getUser(image.userId).then(userWeird => {
+        const user: any = userWeird;
+        this.setState({ user });
+      });
+    });
+    // const image: any = await Backend.getImage(imageId);
+    // const user: any = await Backend.getUser(image.userId);
+    // debugger;
+    // // const user = this.props.navigation.getParam('user', '');
+    // image.snapshots.forEach(id => {
+    //   this.loadSnapshot(id);
+    // });
+    // this.setState({ image, user });
   }
 
   loadSnapshot = id => {
@@ -145,7 +149,6 @@ export default class ImageScreen extends React.Component {
             >
               <Icon
                 style={styles.optionIcons}
-                size={10}
                 type="SimpleLineIcons"
                 name="options-vertical"
               />

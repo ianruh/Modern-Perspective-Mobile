@@ -1,6 +1,5 @@
 import React from 'react';
 import { ScrollView, StyleSheet, Text, Dimensions, Image } from 'react-native';
-import { ExpoLinksView } from '@expo/samples';
 import {
   Container,
   Header,
@@ -97,7 +96,7 @@ export default class NewSnapshotScreen extends React.Component {
               <Grid>
                 <Row>
                   <Image
-                    source={{ uri: this.state.snapshot.target_image }}
+                    source={{ uri: this.state.snapshot.targetImage }}
                     style={{ height: 200, width: styles.windowSize.width }}
                   />
                 </Row>
