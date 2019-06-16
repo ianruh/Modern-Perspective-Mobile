@@ -6,15 +6,17 @@ export interface Image {
   lng: number;
   userId: string;
   snapshots: string[];
+  temp: boolean;
 }
 
 export interface Snapshot {
   id: string;
   date: string;
   source: string;
-  target_image: string;
+  targetImage: string;
   imageId: string;
   userId: string;
+  temp: boolean;
 }
 
 export interface User {

@@ -6,6 +6,7 @@ import {
   View,
   Dimensions,
   Share,
+  TouchableOpacity,
 } from 'react-native';
 import {
   Container,
@@ -22,9 +23,12 @@ import {
 } from 'native-base';
 import Carousel, { ParallaxImage } from 'react-native-snap-carousel';
 import Divider from '../components/Divider';
-import { MapView } from 'expo';
+import { MapView, Marker } from 'expo';
 import UserCard from '../components/UserCard';
 import Backend from '../data/backend';
+import FullImage from '../components/FullImage';
+import CameraScreen from './CameraScreen';
+import Storage from '../data/storage';
 
 interface Props extends React.Props<any> {
   navigation: any;
@@ -39,32 +43,41 @@ export default class ImageScreen extends React.Component<Props, any> {
     image: null,
     user: null,
     snapshots: [],
+    modalVisible: false,
+    modalIndex: 0,
+    cameraVisible: false,
+    isSaved: false,
   };
 
   renderSnapshot = ({ item, index }, parallaxProps) => {
     return (
-      <View>
-        <ParallaxImage
-          source={{
-            uri:
-              this.state.snapshots[index] &&
-              this.state.snapshots[index].targetImage
-                ? this.state.snapshots[index].targetImage
-                : 'data:image/jpg;base64,',
-          }}
-          containerStyle={{ width: styles.windowSize.width, height: 200 }}
-          style={{ width: styles.windowSize.width, height: 200 }}
-          parallaxFactor={0.4}
-          {...parallaxProps}
-        />
-      </View>
+      <TouchableOpacity onPress={() => this.onImagePress(index)}>
+        <View>
+          <ParallaxImage
+            source={{
+              uri:
+                this.state.snapshots[index] &&
+                this.state.snapshots[index].targetImage
+                  ? this.state.snapshots[index].targetImage
+                  : 'data:image/jpg;base64,',
+            }}
+            containerStyle={{ width: styles.windowSize.width, height: 200 }}
+            style={{ width: styles.windowSize.width, height: 200 }}
+            parallaxFactor={0.2}
+            {...parallaxProps}
+          />
+        </View>
+      </TouchableOpacity>
     );
+  };
+
+  onImagePress = index => {
+    this.setState({ modalVisible: true, modalIndex: index });
   };
 
   shareOption = () => {
     Share.share({
-      message:
-        'React Native | A framework for building native apps using React',
+      message: 'Share Image',
     });
   };
 
@@ -89,11 +102,7 @@ export default class ImageScreen extends React.Component<Props, any> {
   };
 
   newSnapshot = () => {
-    this.props.navigation.push('CameraPush', {
-      image: this.state.image,
-      snapshots: this.state.snapshots,
-      user: this.state.user,
-    });
+    this.setState({ cameraVisible: true });
   };
 
   componentDidMount() {
@@ -108,6 +117,9 @@ export default class ImageScreen extends React.Component<Props, any> {
         const user: any = userWeird;
         this.setState({ user });
       });
+    });
+    Storage.hasImage(imageId).then(result => {
+      this.setState({ isSaved: result });
     });
     // const image: any = await Backend.getImage(imageId);
     // const user: any = await Backend.getUser(image.userId);
@@ -126,6 +138,26 @@ export default class ImageScreen extends React.Component<Props, any> {
         snapshots,
       });
     });
+  };
+
+  closeCamera = () => {
+    this.setState({ cameraVisible: false });
+  };
+
+  saveImage = async () => {
+    if (this.state.isSaved) {
+      Storage.removeImage(this.state.image.id);
+      this.state.snapshots.forEach(snapshot => {
+        Storage.removeSnapshot(snapshot.id);
+      });
+      this.setState({ isSaved: false });
+    } else {
+      Storage.storeImage(this.state.image).then(() => {});
+      this.state.snapshots.forEach(async snapshot => {
+        Storage.storeSnapshot(snapshot);
+      });
+      this.setState({ isSaved: true });
+    }
   };
 
   render() {
@@ -155,6 +187,20 @@ export default class ImageScreen extends React.Component<Props, any> {
             </Button>
           </Right>
         </Header>
+        <FullImage
+          visible={this.state.modalVisible}
+          index={this.state.modalIndex}
+          snapshots={this.state.snapshots}
+          close={() => this.setState({ modalVisible: false })}
+        />
+        <CameraScreen
+          close={this.closeCamera}
+          navigation={this.props.navigation}
+          image={this.state.image}
+          user={this.state.user}
+          snapshots={this.state.snapshots}
+          visible={this.state.cameraVisible}
+        />
         <ScrollView style={styles.container}>
           <Grid>
             <Row>
@@ -183,11 +229,11 @@ export default class ImageScreen extends React.Component<Props, any> {
                   name="pluscircleo"
                 />
               </Button>
-              <Button iconRight transparent primary>
+              <Button iconRight transparent primary onPress={this.saveImage}>
                 <Icon
                   style={styles.optionIcons}
                   type="MaterialIcons"
-                  name="bookmark-border"
+                  name={this.state.isSaved ? 'bookmark' : 'bookmark-border'}
                 />
               </Button>
               <Button iconRight transparent primary onPress={this.shareOption}>
@@ -229,7 +275,18 @@ export default class ImageScreen extends React.Component<Props, any> {
                     latitudeDelta: 0.0922,
                     longitudeDelta: 0.0421,
                   }}
-                />
+                >
+                  {/* {this.state.image.lat !== 0 && (
+                    <Marker
+                      coordinate={{
+                        latitude: this.state.image.lat,
+                        longitude: this.state.image.lng,
+                      }}
+                      title=""
+                      description=""
+                    />
+                  )} */}
+                </MapView>
               )}
             </Row>
           </Grid>

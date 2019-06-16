@@ -1,6 +1,7 @@
 import Env from '../constants/Env';
 import { Image, Snapshot, User } from './Models';
 import Cache from './cache';
+import Storage from './storage';
 
 export interface QueryOptions {
   location?: {
@@ -12,117 +13,149 @@ export interface QueryOptions {
 }
 
 export default class Backend {
-  static getImage(id: string) {
-    // const it = Cache;
-    // debugger;
-    if (Cache.hasImage(id)) {
-      return new Promise((resolve, reject) => {
-        resolve(Cache.getImage(id));
+  static getImage = async (id: string) => {
+    // Try the cache
+    return Cache.getImage(id)
+      .catch(async () => {
+        // Try local storage
+        const image: Image = await Storage.getImage(id);
+        Cache.cacheImage(image);
+        return image;
+      })
+      .catch(async () => {
+        // If not in offline mode, try the server.
+        if ((await Storage.getSettings()).localOnly) {
+          throw new Error('Cannot fetch image');
+        } else {
+          // Construct the request url
+          const url = Env.apiHost + '/api/image/' + id;
+
+          // Make the request
+          return fetch(url)
+            .then(function(response) {
+              return response.json();
+            })
+            .then(function(data: Image) {
+              Cache.cacheImage(data);
+              return data;
+            })
+            .catch(() => {
+              throw new Error('Cannot fetch image');
+            });
+        }
       });
+  };
+
+  static queryImages = async (options: QueryOptions) => {
+    var images: string[];
+    if ((await Storage.getSettings()).localOnly) {
+      images = await Storage.getImages();
     } else {
       // Construct the request url
-      const url = Env.apiHost + '/api/image/' + id;
+      const url = Env.apiHost + '/api/images';
 
       // Make the request
-      return fetch(url)
+      images = await fetch(url)
         .then(function(response) {
           return response.json();
         })
-        .then(function(data: Image) {
-          Cache.cacheImage(data);
+        .then(function(data: string[]) {
           return data;
         });
     }
-  }
 
-  static queryImages(options: QueryOptions) {
     // Parse the options for the query
     if (options) {
       // TODO: Fix
       console.log('with options, but actually ignored');
     }
 
-    // Construct the request url
-    const url = Env.apiHost + '/api/images';
+    return images;
+  };
 
-    // Make the request
-    return fetch(url)
-      .then(function(response) {
-        return response.json();
+  static getSnapshot = async (id: string) => {
+    return Cache.getSnapshot(id)
+      .catch(() => {
+        return Storage.getSnapshot(id);
       })
-      .then(function(data: Image) {
-        return data;
-      });
-  }
+      .catch(() => {
+        // Construct the request url
+        const url = Env.apiHost + '/api/snapshot/' + id;
 
-  static getSnapshot(id: string) {
-    // Check the cache for the snapshot
-    if (Cache.hasSnapshot(id)) {
-      return new Promise((resolve, reject) => {
-        resolve(Cache.getSnapshot(id));
+        // Make the request
+        return fetch(url)
+          .then(function(response) {
+            return response.json();
+          })
+          .then(function(data: Snapshot) {
+            Cache.cacheSnapshot(data);
+            return data;
+          });
       });
-    } else {
-      // Construct the request url
-      const url = Env.apiHost + '/api/snapshot/' + id;
-
-      // Make the request
-      return fetch(url)
-        .then(function(response) {
-          return response.json();
-        })
-        .then(function(data: Snapshot) {
-          Cache.cacheSnapshot(data);
-          return data;
-        });
-    }
-  }
+  };
 
   static getUser(id: string) {
-    if (Cache.hasUser(id)) {
-      return new Promise((resolve, reject) => {
-        return Cache.getUser(id);
+    return Cache.getUser(id)
+      .catch(() => {
+        return Storage.getUser(id);
+      })
+      .catch(() => {
+        // Construct the request url
+        const url = Env.apiHost + '/api/user/' + id;
+
+        // Make the request
+        return fetch(url)
+          .then(function(response) {
+            return response.json();
+          })
+          .then(function(data: User) {
+            Cache.cacheUser(data);
+            return data;
+          });
       });
+  }
+
+  static newImage = async (image: Image) => {
+    if ((await Storage.getSettings()).localOnly) {
+      const tempImage = { ...image, id: String(Math.random()), temp: true };
+      Storage.storeImage(tempImage);
+      return tempImage;
     } else {
       // Construct the request url
-      const url = Env.apiHost + '/api/user/' + id;
+      const url = Env.apiHost + '/api/new/image';
 
       // Make the request
-      return fetch(url)
-        .then(function(response) {
-          return response.json();
-        })
-        .then(function(data: User) {
-          Cache.cacheUser(data);
-          return data;
-        });
+      return fetch(url, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(image),
+      }).then(response => response.json());
     }
-  }
+  };
 
-  static newImage(image: Image) {
-    // Construct the request url
-    const url = Env.apiHost + '/api/new/image';
+  static newSnapshot = async (snapshot: Snapshot) => {
+    if ((await Storage.getSettings()).localOnly) {
+      const tempSnapshot = {
+        ...snapshot,
+        id: String(Math.random()),
+        temp: true,
+      };
+      Storage.storeSnapshot(tempSnapshot);
+      return tempSnapshot;
+    } else {
+      // Construct the request url
+      const url = Env.apiHost + '/api/new/snapshot';
 
-    // Make the request
-    return fetch(url, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify(image),
-    }).then(response => response.json());
-  }
-
-  static newSnapshot(snapshot: Snapshot) {
-    // Construct the request url
-    const url = Env.apiHost + '/api/new/snapshot';
-
-    // Make the request
-    return fetch(url, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify(snapshot),
-    }).then(response => response.json());
-  }
+      // Make the request
+      return fetch(url, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(snapshot),
+      }).then(response => response.json());
+    }
+  };
 }

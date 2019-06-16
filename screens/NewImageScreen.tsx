@@ -30,8 +30,13 @@ import UserCard from '../components/UserCard';
 import Backend from '../data/backend';
 import { Location, Permissions, MapView } from 'expo';
 import { Marker } from 'react-native-maps';
+import Env from '../constants/Env';
 
-export default class NewImageScreen extends React.Component {
+interface Props extends React.Props<any> {
+  navigation: any;
+}
+
+export default class NewImageScreen extends React.Component<Props, any> {
   static navigationOptions = {
     header: null,
   };
@@ -44,6 +49,8 @@ export default class NewImageScreen extends React.Component {
     descriptionValid: true,
     sourceValid: true,
   };
+
+  mapView = null;
 
   navBack = () => {
     this.props.navigation.goBack();

@@ -24,6 +24,10 @@ interface StoreIndex {
   userIDs: string[];
 }
 
+interface Settings {
+  localOnly: boolean;
+}
+
 export default class Storage {
   static getSnapshot = async (id: string) => {
     try {
@@ -39,7 +43,7 @@ export default class Storage {
     }
   };
 
-  static insertSnapshot = async (snapshot: Snapshot) => {
+  static storeSnapshot = async (snapshot: Snapshot) => {
     try {
       var index: StoreIndex = await Storage.getIndex();
       const snapshotStore: SnapshotStore = {
@@ -60,6 +64,23 @@ export default class Storage {
     }
   };
 
+  static removeSnapshot = async (snapshotId: string) => {
+    AsyncStorage.removeItem('snapshot:' + snapshotId).then(async () => {
+      var index: StoreIndex = await Storage.getIndex();
+      const newIndex = {
+        ...index,
+        snapshotIDs: index.snapshotIDs.filter(value => {
+          if (value != snapshotId) {
+            return true;
+          } else {
+            return false;
+          }
+        }),
+      };
+      AsyncStorage.setItem('index', JSON.stringify(newIndex));
+    });
+  };
+
   static getImage = async (id: string) => {
     try {
       const index = await Storage.getIndex();
@@ -73,7 +94,20 @@ export default class Storage {
     }
   };
 
-  static insertImage = async (image: Image) => {
+  static hasImage = async (id: string) => {
+    try {
+      const index = await Storage.getIndex();
+      if (index.imageIDs.includes(id)) {
+        return true;
+      } else {
+        return false;
+      }
+    } catch (error) {
+      throw new Error('Unable to fetch image.');
+    }
+  };
+
+  static storeImage = async (image: Image) => {
     try {
       var index: StoreIndex = await Storage.getIndex();
       const imageStore: ImageStore = {
@@ -81,14 +115,33 @@ export default class Storage {
         dateUpdated: Date.now() + '',
       };
       AsyncStorage.setItem('image:' + image.id, JSON.stringify(imageStore));
-      const newIndex = {
-        ...index,
-        imageIDs: index.imageIDs.concat([image.id]),
-      };
-      AsyncStorage.setItem('index', JSON.stringify(newIndex));
+      if (!index.imageIDs.includes(image.id)) {
+        const newIndex = {
+          ...index,
+          imageIDs: index.imageIDs.concat([image.id]),
+        };
+        AsyncStorage.setItem('index', JSON.stringify(newIndex));
+      }
     } catch (error) {
       throw new Error('Unable to insert image.');
     }
+  };
+
+  static removeImage = async (imageId: string) => {
+    AsyncStorage.removeItem('image:' + imageId).then(async () => {
+      var index: StoreIndex = await Storage.getIndex();
+      const newIndex = {
+        ...index,
+        imageIDs: index.imageIDs.filter(value => {
+          if (value !== imageId) {
+            return true;
+          } else {
+            return false;
+          }
+        }),
+      };
+      AsyncStorage.setItem('index', JSON.stringify(newIndex));
+    });
   };
 
   static getUser = async (id: string) => {
@@ -104,14 +157,14 @@ export default class Storage {
     }
   };
 
-  static insertUser = async (user: User) => {
+  static storeUser = async (user: User) => {
     try {
       var index: StoreIndex = await Storage.getIndex();
       const userStore: UserStore = {
         user: user,
         dateUpdated: Date.now() + '',
       };
-      AsyncStorage.setItem('user:' + user.id, JSON.stringify(user));
+      AsyncStorage.setItem('user:' + user.id, JSON.stringify(userStore));
       const newIndex = {
         ...index,
         userIDs: index.userIDs.concat([user.id]),
@@ -141,6 +194,36 @@ export default class Storage {
       } catch (error) {
         throw new Error('Unable to create store index.');
       }
+    }
+  };
+
+  static getSettings = async () => {
+    const settings: Settings = JSON.parse(
+      await AsyncStorage.getItem('settings')
+    );
+    if (!settings) {
+      const newSettings = {
+        localOnly: false,
+      };
+      await AsyncStorage.setItem('settings', JSON.stringify(newSettings));
+      return newSettings;
+    } else {
+      return settings;
+    }
+  };
+
+  static setLocalOnly = async value => {
+    var settings = await Storage.getSettings();
+    settings.localOnly = value;
+    await AsyncStorage.setItem('settings', JSON.stringify(settings));
+  };
+
+  static getImages = async () => {
+    try {
+      var index: StoreIndex = await Storage.getIndex();
+      return index.imageIDs;
+    } catch (error) {
+      throw new Error('Unable to get images');
     }
   };
 }

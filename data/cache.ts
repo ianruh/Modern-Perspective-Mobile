@@ -17,8 +17,14 @@ export default class Cache {
     return !!Cache.imageCache[id];
   };
 
-  static getImage = (id: string): Image => {
-    return Cache.imageCache[id].image;
+  static getImage = async (id: string): Promise<Image> => {
+    return new Promise((resolve, reject) => {
+      if (Cache.hasImage(id)) {
+        resolve(Cache.imageCache[id].image);
+      } else {
+        reject(null);
+      }
+    });
   };
 
   static cacheImage = (image: Image) => {
@@ -33,8 +39,14 @@ export default class Cache {
     return !!Cache.snapshotCache[id];
   };
 
-  static getSnapshot = (id: string): Snapshot => {
-    return Cache.snapshotCache[id].snapshot;
+  static getSnapshot = async (id: string): Promise<Snapshot> => {
+    return new Promise((resolve, reject) => {
+      if (Cache.hasSnapshot(id)) {
+        resolve(Cache.snapshotCache[id].snapshot);
+      } else {
+        reject(null);
+      }
+    });
   };
 
   static cacheSnapshot = (snapshot: Snapshot) => {
@@ -49,8 +61,14 @@ export default class Cache {
     return !!Cache.userCache[id];
   };
 
-  static getUser = (id: string): User => {
-    return Cache.userCache[id].user;
+  static getUser = async (id: string): Promise<User> => {
+    return new Promise((resolve, reject) => {
+      if (Cache.hasUser(id)) {
+        resolve(Cache.userCache[id].user);
+      } else {
+        reject(null);
+      }
+    });
   };
 
   static cacheUser = (user: User) => {

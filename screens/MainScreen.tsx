@@ -1,5 +1,13 @@
 import React from 'react';
-import { ScrollView, StyleSheet, Text } from 'react-native';
+import {
+  ScrollView,
+  StyleSheet,
+  Text,
+  View,
+  Dimensions,
+  ActivityIndicator,
+  RefreshControl,
+} from 'react-native';
 import {
   Container,
   Header,
@@ -30,9 +38,18 @@ export default class MainScreen extends React.Component<Props, any> {
     images: null,
     hasCameraPermission: null,
     user: null,
+    refreshing: false,
   };
 
+  subs = [];
+
   async componentDidMount() {
+    this.subs = [
+      this.props.navigation.addListener('didFocus', payload =>
+        this.componentDidFocus(payload)
+      ),
+    ];
+
     Backend.getUser('1').then(user => {
       this.setState({ user });
     });
@@ -40,6 +57,20 @@ export default class MainScreen extends React.Component<Props, any> {
       this.setState({ images });
     });
   }
+
+  componentDidFocus = data => {
+    Backend.queryImages(null)
+      .then(images => {
+        this.setState({ images });
+      })
+      .then(() => {
+        this.setState({ refreshing: false });
+      });
+  };
+
+  refresh = () => {
+    this.setState({ refreshing: true }, () => this.componentDidFocus(null));
+  };
 
   showActionSheet = () => {
     const BUTTONS = ['From Photos', 'Cancel'];
@@ -93,7 +124,7 @@ export default class MainScreen extends React.Component<Props, any> {
     return (
       <Root>
         <Container>
-          <Header>
+          <Header style={styles.header}>
             <Left />
             <Body>
               <Title>Nearby</Title>
@@ -109,20 +140,56 @@ export default class MainScreen extends React.Component<Props, any> {
               </Button>
             </Right>
           </Header>
-          {this.state.images && (
-            <ScrollView>
-              {this.state.images.map(item => {
-                return (
-                  <ImageCardLarge
-                    imageId={item}
-                    key={item}
-                    navigation={this.props.navigation}
-                  />
-                );
-              })}
-            </ScrollView>
-          )}
-          {!this.state.images && <Text>Loading...</Text>}
+          <ScrollView
+            refreshControl={
+              <RefreshControl
+                refreshing={this.state.refreshing}
+                onRefresh={this.refresh}
+              />
+            }
+          >
+            {this.state.images && this.state.images.length != 0 && (
+              <View>
+                {this.state.images.map(item => {
+                  return (
+                    <ImageCardLarge
+                      imageId={item}
+                      key={item}
+                      navigation={this.props.navigation}
+                      hideUser
+                    />
+                  );
+                })}
+              </View>
+            )}
+            {this.state.images && this.state.images.length == 0 && (
+              <View
+                style={{
+                  flex: 1,
+                  flexDirection: 'column',
+                  justifyContent: 'center',
+                  alignItems: 'center',
+                  height: Dimensions.get('window').height - 200,
+                }}
+              >
+                <Text> It doesn't look like you have any images.</Text>
+                <Text> Go online to view and save some images.</Text>
+              </View>
+            )}
+            {!this.state.images && (
+              <View
+                style={{
+                  flex: 1,
+                  flexDirection: 'column',
+                  justifyContent: 'center',
+                  alignItems: 'center',
+                  height: Dimensions.get('window').height,
+                }}
+              >
+                <ActivityIndicator size="large" />
+              </View>
+            )}
+          </ScrollView>
         </Container>
       </Root>
     );
@@ -138,4 +205,7 @@ const styles = StyleSheet.create({
     backgroundColor: '#fff',
   },
   optionIcons: {},
+  header: {
+    backgroundColor: '#fff',
+  },
 });

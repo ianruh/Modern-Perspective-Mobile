@@ -1,5 +1,5 @@
 import React from 'react';
-import { Image, TouchableOpacity, View } from 'react-native';
+import { Image, TouchableOpacity, View, ActivityIndicator } from 'react-native';
 import {
   Container,
   Content,
@@ -21,6 +21,7 @@ import {
 import Divider from './Divider';
 import UserCard from './UserCard';
 import Backend from '../data/backend';
+import { BlurView } from 'expo';
 
 interface Props extends React.Props<any> {
   navigation: any;
@@ -37,19 +38,23 @@ export class ImageCardLarge extends React.Component<Props, any> {
   };
 
   componentDidMount() {
-    Backend.getImage(this.props.imageId).then(imageStrict => {
-      this.setState({ image: imageStrict });
-      const image: any = imageStrict;
-      Backend.getUser(image.userId).then(user => {
-        this.setState({ user });
-      });
-      Backend.getSnapshot(image.snapshots['0']).then(snapshot => {
-        const snap: any = snapshot;
-        this.setState({
-          coverImage: snap.targetImage,
+    Backend.getImage(this.props.imageId)
+      .then(imageStrict => {
+        this.setState({ image: imageStrict });
+        const image: any = imageStrict;
+        Backend.getUser(image.userId).then(user => {
+          this.setState({ user });
         });
+        Backend.getSnapshot(image.snapshots['0']).then(snapshot => {
+          const snap: any = snapshot;
+          this.setState({
+            coverImage: snap.targetImage,
+          });
+        });
+      })
+      .catch(error => {
+        console.log(error);
       });
-    });
   }
 
   showActionSheet = () => {
@@ -76,41 +81,81 @@ export class ImageCardLarge extends React.Component<Props, any> {
     // debugger;
     return (
       <Root>
-        {this.state.image && (
-          <Content>
-            <Card>
-              <CardItem>
-                <Grid>
-                  <Row>
-                    <Col
-                      size={80}
+        <Content style={{ backgroundColor: '#fff' }}>
+          <View style={{ position: 'relative' }}>
+            {!this.state.image && (
+              <View
+                style={{
+                  position: 'absolute',
+                  top: 0,
+                  left: 0,
+                  flex: 1,
+                  opacity: 0.3,
+                  justifyContent: 'center',
+                  alignItems: 'center',
+                }}
+              >
+                <ActivityIndicator size="small" color="#00ff00" />
+              </View>
+            )}
+            <View
+              style={{ margin: 10, borderRadius: 10, backgroundColor: 'grey' }}
+            >
+              <TouchableOpacity onPress={this.navToImage}>
+                <View
+                  style={{
+                    position: 'relative',
+                    height: 250,
+                    flex: 1,
+                    backgroundColor: 'transparent',
+                    borderTopLeftRadius: 10,
+                    borderTopRightRadius: 10,
+                  }}
+                >
+                  <View
+                    style={{
+                      position: 'absolute',
+                      width: '100%',
+                      height: '100%',
+                      top: 0,
+                      left: 0,
+                      flexDirection: 'column',
+                      justifyContent: 'space-between',
+                      zIndex: 1,
+                      borderTopLeftRadius: 10,
+                      borderTopRightRadius: 10,
+                    }}
+                  >
+                    <BlurView
+                      tint="dark"
+                      intensity={60}
                       style={{
+                        height: 60,
+                        width: '100%',
                         flexDirection: 'row',
-                        justifyContent: 'flex-start',
+                        justifyContent: 'space-between',
                         alignItems: 'center',
+                        backgroundColor: 'transparent',
+                        borderTopLeftRadius: 10,
+                        borderTopRightRadius: 10,
                       }}
                     >
-                      <TouchableOpacity onPress={this.navToImage}>
-                        <Body>
-                          <Text style={{ fontWeight: 'bold' }}>
-                            {this.state.image.title}
-                          </Text>
-                          <Text note>
-                            {this.state.image.description.substring(0, 30) +
+                      <View
+                        style={{
+                          paddingLeft: 15,
+                          borderTopLeftRadius: 10,
+                          borderTopRightRadius: 10,
+                        }}
+                      >
+                        <Text style={{ fontWeight: 'bold', color: 'white' }}>
+                          {this.state.image && this.state.image.title}
+                        </Text>
+                        <Text note style={{ color: 'white' }}>
+                          {this.state.image &&
+                            this.state.image.description.substring(0, 30) +
                               '...'}
-                          </Text>
-                        </Body>
-                      </TouchableOpacity>
-                    </Col>
-
-                    <Col
-                      size={20}
-                      style={{
-                        flexDirection: 'row',
-                        justifyContent: 'flex-end',
-                        alignItems: 'center',
-                      }}
-                    >
+                        </Text>
+                      </View>
                       <Button
                         iconRight
                         transparent
@@ -119,31 +164,39 @@ export class ImageCardLarge extends React.Component<Props, any> {
                       >
                         <Icon type="SimpleLineIcons" name="options-vertical" />
                       </Button>
-                    </Col>
-                  </Row>
-                </Grid>
-              </CardItem>
-              <Divider />
-              <CardItem cardBody>
-                <Image
-                  source={{
-                    uri: this.state.coverImage ? this.state.coverImage : '',
-                  }}
-                  style={{ height: 200, width: null, flex: 1 }}
-                />
-              </CardItem>
-              {!this.props.hideUser && this.state.user && (
-                <View>
-                  <Divider />
-                  <UserCard
-                    user={this.state.user}
-                    navigation={this.props.navigation}
+                    </BlurView>
+
+                    {!this.props.hideUser && this.state.user && (
+                      <View>
+                        <UserCard
+                          user={this.state.user}
+                          navigation={this.props.navigation}
+                        />
+                      </View>
+                    )}
+                  </View>
+                  <Image
+                    source={{
+                      uri: this.state.coverImage
+                        ? this.state.coverImage
+                        : 'data:image/jpg;base64,',
+                    }}
+                    style={{
+                      height: 250,
+                      width: '100%',
+                      flex: 1,
+                      position: 'absolute',
+                      top: 0,
+                      left: 0,
+                      zIndex: 0,
+                      borderRadius: 10,
+                    }}
                   />
                 </View>
-              )}
-            </Card>
-          </Content>
-        )}
+              </TouchableOpacity>
+            </View>
+          </View>
+        </Content>
       </Root>
     );
   }
