@@ -10,6 +10,10 @@ import {
 } from 'expo';
 import AppNavigator from './navigation/AppNavigator';
 
+if (__DEV__) {
+  import('./ReactotronConfig').then(() => console.log('Reactotron Configured'));
+}
+
 interface Props extends React.Props<any> {
   skipLoadingScreen: any;
 }

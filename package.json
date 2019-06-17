@@ -28,6 +28,7 @@
     "babel-preset-expo": "^5.0.0",
     "jest-expo": "^32.0.0",
     "react-native-typescript-transformer": "^1.2.12",
+    "reactotron-react-native": "^3.6.4",
     "typescript": "^3.4.5"
   },
   "private": true

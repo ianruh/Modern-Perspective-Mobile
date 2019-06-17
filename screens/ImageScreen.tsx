@@ -7,6 +7,7 @@ import {
   Dimensions,
   Share,
   TouchableOpacity,
+  Image,
 } from 'react-native';
 import {
   Container,
@@ -49,11 +50,11 @@ export default class ImageScreen extends React.Component<Props, any> {
     isSaved: false,
   };
 
-  renderSnapshot = ({ item, index }, parallaxProps) => {
+  renderSnapshot = ({ item, index }) => {
     return (
       <TouchableOpacity onPress={() => this.onImagePress(index)}>
         <View>
-          <ParallaxImage
+          <Image
             source={{
               uri:
                 this.state.snapshots[index] &&
@@ -61,10 +62,7 @@ export default class ImageScreen extends React.Component<Props, any> {
                   ? this.state.snapshots[index].targetImage
                   : 'data:image/jpg;base64,',
             }}
-            containerStyle={{ width: styles.windowSize.width, height: 200 }}
             style={{ width: styles.windowSize.width, height: 200 }}
-            parallaxFactor={0.2}
-            {...parallaxProps}
           />
         </View>
       </TouchableOpacity>
@@ -105,7 +103,7 @@ export default class ImageScreen extends React.Component<Props, any> {
     this.setState({ cameraVisible: true });
   };
 
-  componentDidMount() {
+  componentDidMount = async () => {
     const imageId = this.props.navigation.getParam('imageId', '');
     Backend.getImage(imageId).then(imageWeird => {
       const image: any = imageWeird;
@@ -129,14 +127,13 @@ export default class ImageScreen extends React.Component<Props, any> {
     //   this.loadSnapshot(id);
     // });
     // this.setState({ image, user });
-  }
+  };
 
-  loadSnapshot = id => {
-    Backend.getSnapshot(id).then(snapshot => {
-      const snapshots = this.state.snapshots.concat([snapshot]);
-      this.setState({
-        snapshots,
-      });
+  loadSnapshot = async id => {
+    const snapshot = await Backend.getSnapshot(id);
+    const snapshots = this.state.snapshots.concat([snapshot]);
+    this.setState({
+      snapshots,
     });
   };
 
@@ -146,15 +143,15 @@ export default class ImageScreen extends React.Component<Props, any> {
 
   saveImage = async () => {
     if (this.state.isSaved) {
-      Storage.removeImage(this.state.image.id);
-      this.state.snapshots.forEach(snapshot => {
-        Storage.removeSnapshot(snapshot.id);
+      await Storage.removeImage(this.state.image.id);
+      this.state.snapshots.forEach(async snapshot => {
+        await Storage.removeSnapshot(snapshot.id);
       });
       this.setState({ isSaved: false });
     } else {
-      Storage.storeImage(this.state.image).then(() => {});
+      await Storage.storeImage(this.state.image).then(() => {});
       this.state.snapshots.forEach(async snapshot => {
-        Storage.storeSnapshot(snapshot);
+        await Storage.storeSnapshot(snapshot);
       });
       this.setState({ isSaved: true });
     }
@@ -204,17 +201,18 @@ export default class ImageScreen extends React.Component<Props, any> {
         <ScrollView style={styles.container}>
           <Grid>
             <Row>
-              {this.state.image && (
-                <Carousel
-                  data={this.state.image.snapshots}
-                  renderItem={this.renderSnapshot}
-                  hasParallaxImages={true}
-                  windowSize={1}
-                  sliderWidth={styles.windowSize.width}
-                  itemWidth={styles.windowSize.width}
-                  itemHeight={200}
-                />
-              )}
+              {this.state.image &&
+                this.state.snapshots.length ==
+                  this.state.image.snapshots.length && (
+                  <Carousel
+                    data={this.state.image.snapshots}
+                    renderItem={this.renderSnapshot}
+                    windowSize={1}
+                    sliderWidth={styles.windowSize.width}
+                    itemWidth={styles.windowSize.width}
+                    itemHeight={200}
+                  />
+                )}
             </Row>
             <Row style={styles.content}>
               {this.state.image && (
