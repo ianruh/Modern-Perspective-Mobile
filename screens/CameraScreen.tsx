@@ -12,7 +12,7 @@ import {
 import { Grid, Col, Button, Icon, ActionSheet, Root } from 'native-base';
 import Backend from '../data/backend';
 import { Camera, Permissions, ScreenOrientation, Constants } from 'expo';
-import { User } from '../data/Models';
+import { Snapshot } from '../data/models';
 
 interface Props extends React.Props<any> {
   close: () => void;
@@ -21,6 +21,7 @@ interface Props extends React.Props<any> {
   user: any;
   snapshots: any;
   visible: boolean;
+  pictureTaken: (Snapshot) => void;
 }
 
 export default class CameraScreen extends React.Component<Props, any> {
@@ -48,12 +49,6 @@ export default class CameraScreen extends React.Component<Props, any> {
 
   camera = null;
 
-  async componentWillMount() {
-    // ScreenOrientation.allowAsync(
-    //   ScreenOrientation.Orientation.ALL_BUT_UPSIDE_DOWN
-    // );
-  }
-
   async componentDidMount() {
     this.camera = React.createRef();
     const { status } = await Permissions.askAsync(Permissions.CAMERA);
@@ -61,6 +56,7 @@ export default class CameraScreen extends React.Component<Props, any> {
     const image = this.props.image;
     const user = this.props.user;
     const snapshots = this.props.snapshots;
+    console.log('Snapshots to camera: ' + snapshots);
     if (snapshots) {
       this.setState({ image, snapshots, user });
     } else {
@@ -94,7 +90,7 @@ export default class CameraScreen extends React.Component<Props, any> {
     this.props.close();
   };
 
-  showActionSheet = () => {
+  showShareActionSheet = () => {
     const BUTTONS = ['Share', 'Save', 'Flag', 'Cancel'];
     const CANCEL_INDEX = 3;
 
@@ -136,11 +132,7 @@ export default class CameraScreen extends React.Component<Props, any> {
           imageId: this.state.image.id,
           userId: this.state.user.id,
         };
-        this.props.navigation.push('NewSnapshot', {
-          image: this.state.image,
-          user: this.state.user,
-          snapshot: newSnapshot,
-        });
+        this.props.pictureTaken(newSnapshot);
       });
   };
 
@@ -184,11 +176,12 @@ export default class CameraScreen extends React.Component<Props, any> {
     } else {
       return (
         <Modal
+          animationType="slide"
           visible={this.props.visible}
           supportedOrientations={['portrait', 'landscape']}
         >
           <Root>
-            <View style={{ flex: 1 }}>
+            <View style={{ flex: 1, position: 'relative' }}>
               <Camera
                 style={{ flex: 1 }}
                 type={this.state.type}
@@ -295,7 +288,7 @@ export default class CameraScreen extends React.Component<Props, any> {
                         iconRight
                         transparent
                         primary
-                        onPress={this.showActionSheet}
+                        onPress={this.showShareActionSheet}
                       >
                         <Icon type="SimpleLineIcons" name="options" />
                       </Button>

@@ -118,7 +118,7 @@ export default class Backend {
   static newImage = async (image: Image) => {
     if ((await Storage.getSettings()).localOnly) {
       const tempImage = { ...image, id: String(Math.random()), temp: true };
-      Storage.storeImage(tempImage);
+      await Storage.storeImage(tempImage);
       return tempImage;
     } else {
       // Construct the request url
@@ -142,7 +142,7 @@ export default class Backend {
         id: String(Math.random()),
         temp: true,
       };
-      Storage.storeSnapshot(tempSnapshot);
+      await Storage.storeSnapshot(tempSnapshot);
       return tempSnapshot;
     } else {
       // Construct the request url

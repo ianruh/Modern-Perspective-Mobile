@@ -10,10 +10,8 @@ import HomeScreen from '../screens/HomeScreen';
 import MainScreen from '../screens/MainScreen';
 import SettingsScreen from '../screens/SettingsScreen';
 import ImageScreen from '../screens/ImageScreen';
-import CameraScreen from '../screens/CameraScreen';
 import ProfileScreen from '../screens/ProfileScreen';
-import NewImageScreen from '../screens/NewImageScreen';
-import NewSnapshotScreen from '../screens/NewSnapshotScreen';
+import BlendStylesScreen from '../screens/BlendStylesScreen';
 
 const HomeStack = createStackNavigator({
   Home: HomeScreen,
@@ -37,9 +35,7 @@ const MainStack = createStackNavigator({
   Main: MainScreen,
   Image: ImageScreen,
   Profile: ProfileScreen,
-  CameraPush: CameraScreen,
-  NewImage: NewImageScreen,
-  NewSnapshot: NewSnapshotScreen,
+  Blend: BlendStylesScreen,
 });
 
 MainStack.navigationOptions = {

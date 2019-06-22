@@ -1,12 +1,11 @@
 {
   "expo": {
-    "name": "Pictures",
+    "name": "Modern Perspective",
     "slug": "pictures-mobile",
+    "version": "1.0.0",
     "privacy": "public",
     "sdkVersion": "32.0.0",
     "platforms": ["ios", "android"],
-    "version": "1.0.0",
-    "orientation": "portrait",
     "icon": "./assets/images/icon.png",
     "splash": {
       "image": "./assets/images/splash.png",
@@ -18,7 +17,11 @@
     },
     "assetBundlePatterns": ["**/*"],
     "ios": {
-      "supportsTablet": true
+      "supportsTablet": true,
+      "bundleIdentifier": "com.ian.ruh.io"
+    },
+    "android": {
+      "package": "com.ian.ruh.io"
     }
   }
 }

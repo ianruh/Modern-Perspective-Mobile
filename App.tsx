@@ -23,10 +23,9 @@ export default class App extends React.Component<Props, any> {
     isLoadingComplete: false,
   };
 
-  componentWillMount() {
-    // if (Constants.platform.ios.userInterfaceIdiom === 'tablet') {
-    //   ScreenOrientation.allowAsync(ScreenOrientation.Orientation.ALL);
-    // }
+  componentDidMount() {
+    // ScreenOrientation.allowAsync(ScreenOrientation.Orientation.LANDSCAPE);
+    // ScreenOrientation.allowAsync(ScreenOrientation.Orientation.PORTRAIT);
   }
 
   render() {

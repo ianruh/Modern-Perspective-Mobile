@@ -40,28 +40,35 @@ export default class Storage {
   };
 
   static storeSnapshot = async (snapshot: Snapshot) => {
-    try {
-      var index: StoreIndex = await Storage.getIndex();
-      const snapshotStore: SnapshotStore = {
-        snapshot: snapshot,
-        dateUpdated: Date.now() + '',
-      };
-      if (!(await Storage.hasSnapshot(snapshot.id))) {
-        console.log('Add snapshot to index: ' + snapshot.id);
-        const newIndex = {
-          ...index,
-          snapshotIDs: index.snapshotIDs.concat([snapshot.id]),
+    var index: StoreIndex = await Storage.getIndex();
+    if (index.imageIDs.includes(snapshot.imageId)) {
+      var image: Image = await Storage.getImage(snapshot.imageId);
+      if (!image.snapshots.includes(snapshot.id)) {
+        image = {
+          ...image,
+          snapshots: image.snapshots.concat([snapshot.id]),
         };
-        AsyncStorage.setItem('index', JSON.stringify(newIndex));
+        await Storage.removeImage(snapshot.imageId);
+        await Storage.storeImage(image);
       }
-      AsyncStorage.setItem(
-        'snapshot:' + snapshot.id,
-        JSON.stringify(snapshotStore)
-      );
-      console.log('Stored sanpshot: ' + snapshot.id);
-    } catch (error) {
-      throw new Error('Unable to insert snapshot.');
     }
+    const snapshotStore: SnapshotStore = {
+      snapshot: snapshot,
+      dateUpdated: Date.now() + '',
+    };
+    if (!(await Storage.hasSnapshot(snapshot.id))) {
+      console.log('Add snapshot to index: ' + snapshot.id);
+      const newIndex = {
+        ...index,
+        snapshotIDs: index.snapshotIDs.concat([snapshot.id]),
+      };
+      AsyncStorage.setItem('index', JSON.stringify(newIndex));
+    }
+    AsyncStorage.setItem(
+      'snapshot:' + snapshot.id,
+      JSON.stringify(snapshotStore)
+    );
+    console.log('Stored sanpshot: ' + snapshot.id);
   };
 
   static removeSnapshot = async (snapshotId: string) => {

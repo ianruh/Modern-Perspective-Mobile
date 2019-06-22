@@ -30,12 +30,31 @@ import Backend from '../data/backend';
 import FullImage from '../components/FullImage';
 import CameraScreen from './CameraScreen';
 import Storage from '../data/storage';
+import NewSnapshotModal from '../components/NewSnapshotModal';
+import {
+  Snapshot as SnapshotModel,
+  User as UserModel,
+  Image as ImageModel,
+} from '../data/models';
+import { throws } from 'assert';
 
 interface Props extends React.Props<any> {
   navigation: any;
 }
 
-export default class ImageScreen extends React.Component<Props, any> {
+interface State {
+  image: ImageModel;
+  user: UserModel;
+  snapshots: SnapshotModel[];
+  modalVisible: boolean;
+  modalIndex: number;
+  cameraVisible: boolean;
+  newSnapshotVisible: boolean;
+  isSaved: boolean;
+  newSnapshot: SnapshotModel;
+}
+
+export default class ImageScreen extends React.Component<Props, State> {
   static navigationOptions = {
     header: null,
   };
@@ -47,7 +66,9 @@ export default class ImageScreen extends React.Component<Props, any> {
     modalVisible: false,
     modalIndex: 0,
     cameraVisible: false,
+    newSnapshotVisible: false,
     isSaved: false,
+    newSnapshot: null,
   };
 
   renderSnapshot = ({ item, index }) => {
@@ -83,7 +104,7 @@ export default class ImageScreen extends React.Component<Props, any> {
     this.props.navigation.goBack();
   };
 
-  showActionSheet = () => {
+  showMoreActionSheet = () => {
     const BUTTONS = ['Share', 'Save', 'Flag', 'Cancel'];
     const CANCEL_INDEX = 3;
 
@@ -93,8 +114,29 @@ export default class ImageScreen extends React.Component<Props, any> {
         cancelButtonIndex: CANCEL_INDEX,
         title: 'Options',
       },
+      buttonIndex => {}
+    );
+  };
+
+  showNewActionSheet = () => {
+    const BUTTONS = ['New Snapshot', 'New Blend', 'Cancel'];
+    const CANCEL_INDEX = 2;
+
+    ActionSheet.show(
+      {
+        options: BUTTONS,
+        cancelButtonIndex: CANCEL_INDEX,
+        title: 'New Item',
+      },
       buttonIndex => {
-        this.setState({ clicked: BUTTONS[buttonIndex] });
+        switch (buttonIndex) {
+          case 0:
+            this.newSnapshot();
+            break;
+          case 1:
+            this.newBlend();
+            break;
+        }
       }
     );
   };
@@ -103,10 +145,19 @@ export default class ImageScreen extends React.Component<Props, any> {
     this.setState({ cameraVisible: true });
   };
 
+  newBlend = () => {
+    this.props.navigation.push('Blend', {
+      image: this.state.image,
+      user: this.state.user,
+      snapshots: this.state.snapshots,
+    });
+  };
+
   componentDidMount = async () => {
     const imageId = this.props.navigation.getParam('imageId', '');
-    Backend.getImage(imageId).then(imageWeird => {
+    Backend.getImage(imageId).then(async imageWeird => {
       const image: any = imageWeird;
+      await this.setState({ snapshots: [] });
       image.snapshots.forEach(id => {
         this.loadSnapshot(id);
       });
@@ -119,14 +170,6 @@ export default class ImageScreen extends React.Component<Props, any> {
     Storage.hasImage(imageId).then(result => {
       this.setState({ isSaved: result });
     });
-    // const image: any = await Backend.getImage(imageId);
-    // const user: any = await Backend.getUser(image.userId);
-    // debugger;
-    // // const user = this.props.navigation.getParam('user', '');
-    // image.snapshots.forEach(id => {
-    //   this.loadSnapshot(id);
-    // });
-    // this.setState({ image, user });
   };
 
   loadSnapshot = async id => {
@@ -157,6 +200,19 @@ export default class ImageScreen extends React.Component<Props, any> {
     }
   };
 
+  closeNewSnapshotModal = () => {
+    this.setState({ newSnapshotVisible: false });
+    this.forceUpdate();
+  };
+
+  newSnapshotTaken = (snapshot: SnapshotModel) => {
+    this.setState({
+      cameraVisible: false,
+      newSnapshot: snapshot,
+      newSnapshotVisible: true,
+    });
+  };
+
   render() {
     return (
       <Container>
@@ -174,7 +230,7 @@ export default class ImageScreen extends React.Component<Props, any> {
               iconRight
               transparent
               primary
-              onPress={this.showActionSheet}
+              onPress={this.showMoreActionSheet}
             >
               <Icon
                 style={styles.optionIcons}
@@ -190,14 +246,26 @@ export default class ImageScreen extends React.Component<Props, any> {
           snapshots={this.state.snapshots}
           close={() => this.setState({ modalVisible: false })}
         />
-        <CameraScreen
-          close={this.closeCamera}
-          navigation={this.props.navigation}
-          image={this.state.image}
-          user={this.state.user}
-          snapshots={this.state.snapshots}
-          visible={this.state.cameraVisible}
-        />
+        {this.state.cameraVisible && (
+          <CameraScreen
+            close={this.closeCamera}
+            navigation={this.props.navigation}
+            image={this.state.image}
+            user={this.state.user}
+            snapshots={this.state.snapshots}
+            visible={this.state.cameraVisible}
+            pictureTaken={this.newSnapshotTaken}
+          />
+        )}
+        {this.state.newSnapshotVisible && (
+          <NewSnapshotModal
+            visible={this.state.newSnapshotVisible}
+            image={this.state.image}
+            user={this.state.user}
+            close={this.closeNewSnapshotModal}
+            snapshot={this.state.newSnapshot}
+          />
+        )}
         <ScrollView style={styles.container}>
           <Grid>
             <Row>
@@ -220,7 +288,12 @@ export default class ImageScreen extends React.Component<Props, any> {
               )}
             </Row>
             <Row style={{ justifyContent: 'space-around' }}>
-              <Button iconLeft transparent primary onPress={this.newSnapshot}>
+              <Button
+                iconLeft
+                transparent
+                primary
+                onPress={this.showNewActionSheet}
+              >
                 <Icon
                   style={styles.optionIcons}
                   type="AntDesign"

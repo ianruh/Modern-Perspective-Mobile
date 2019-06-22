@@ -24,6 +24,7 @@ import {
 import ImageCardLarge from '../components/ImageCardLarge';
 import Backend from '../data/backend';
 import { ImagePicker, Permissions, FileSystem } from 'expo';
+import NewImageModal from '../components/NewImageModal';
 
 interface Props extends React.Props<any> {
   navigation: any;
@@ -39,6 +40,8 @@ export default class MainScreen extends React.Component<Props, any> {
     hasCameraPermission: null,
     user: null,
     refreshing: false,
+    newImageModalVisible: false,
+    newImageUri: null,
   };
 
   subs = [];
@@ -108,19 +111,21 @@ export default class MainScreen extends React.Component<Props, any> {
       FileSystem.readAsStringAsync(uri, {
         encoding: FileSystem.EncodingTypes.Base64,
       }).then(base64String => {
-        this.props.navigation.push('NewImage', {
-          user: this.state.user,
-          imageUri: 'data:image/jpg;base64,' + base64String,
+        this.setState({
+          newImageUri: 'data:image/jpg;base64,' + base64String,
+          newImageModalVisible: true,
         });
       });
     }
   };
 
+  closeNewImageModal = () => {
+    this.setState({
+      newImageModalVisible: false,
+    });
+  };
+
   render() {
-    // if (this.state.images) {
-    //   const state = this.state;
-    //   debugger;
-    // }
     return (
       <Root>
         <Container>
@@ -140,6 +145,15 @@ export default class MainScreen extends React.Component<Props, any> {
               </Button>
             </Right>
           </Header>
+          {this.state.newImageModalVisible && (
+            <NewImageModal
+              visible={this.state.newImageModalVisible}
+              user={this.state.user}
+              navigation={this.props.navigation}
+              imageUri={this.state.newImageUri}
+              close={this.closeNewImageModal}
+            />
+          )}
           <ScrollView
             refreshControl={
               <RefreshControl
