@@ -41,3 +41,29 @@ export interface UserStore {
   user: User;
   dateUpdated: string;
 }
+
+export interface Tool {
+  icon: {
+    name: string;
+    type?:
+      | 'AntDesign'
+      | 'Entypo'
+      | 'EvilIcons'
+      | 'Feather'
+      | 'FontAwesome'
+      | 'FontAwesome5'
+      | 'Foundation'
+      | 'Ionicons'
+      | 'MaterialCommunityIcons'
+      | 'MaterialIcons'
+      | 'Octicons'
+      | 'SimpleLineIcons'
+      | 'Zocial';
+  };
+  upPressed?: () => void;
+  rightPressed?: () => void;
+  downPressed?: () => void;
+  leftPressed?: () => void;
+  noHorizontal?: boolean;
+  noVertical?: boolean;
+}

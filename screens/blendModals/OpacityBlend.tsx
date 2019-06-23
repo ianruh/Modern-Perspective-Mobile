@@ -14,6 +14,7 @@ import {
   User as UserModel,
   Snapshot as SnapshotModel,
   Image as ImageModel,
+  Tool,
 } from '../../data/models';
 import Backend from '../../data/backend';
 import {
@@ -27,6 +28,9 @@ import {
   Right,
 } from 'native-base';
 import SelectSnapshotModal from './SelectSnapshotModal';
+import Arrows from '../../components/Arrows';
+import ToolbarIcon from '../../components/ToolbarIcon';
+import BlendToolsBar from '../../components/BlendToolsBar';
 
 interface Props extends React.Props<any> {
   visible: boolean;
@@ -39,8 +43,23 @@ interface Props extends React.Props<any> {
 interface State {
   toolsExpanded: boolean;
   selectModalVisible: boolean;
-  presentedSnapshots: SnapshotModel[];
-  selectionClaim: number;
+  snapshots: SnapshotGroup[];
+  selectedSnapshot: number;
+  selectedTool: Tool;
+}
+
+interface SnapshotGroup {
+  snapshot: SnapshotModel;
+  position: SnaphPosition;
+  reference: any;
+}
+
+interface SnaphPosition {
+  x: number;
+  y: number;
+  width: string; // Percentages
+  height: string;
+  opacity: number;
 }
 
 export default class OpacityBlendModal extends React.Component<Props, State> {
@@ -48,11 +67,110 @@ export default class OpacityBlendModal extends React.Component<Props, State> {
     header: null,
   };
 
+  //   <------------- Tools -------------->
+  moveTool: Tool = {
+    icon: { name: 'move', type: 'Feather' },
+    upPressed: () => {
+      var snapshots = this.state.snapshots;
+      snapshots[this.state.selectedSnapshot].position.y -= 5;
+      this.setState({ snapshots });
+    },
+    rightPressed: () => {
+      var snapshots = this.state.snapshots;
+      snapshots[this.state.selectedSnapshot].position.x += 5;
+      this.setState({ snapshots });
+    },
+    downPressed: () => {
+      var snapshots = this.state.snapshots;
+      snapshots[this.state.selectedSnapshot].position.y += 5;
+      this.setState({ snapshots });
+    },
+    leftPressed: () => {
+      var snapshots = this.state.snapshots;
+      snapshots[this.state.selectedSnapshot].position.x -= 5;
+      this.setState({ snapshots });
+    },
+  };
+
+  resizeTool: Tool = {
+    icon: { name: 'ios-resize', type: 'Ionicons' },
+    upPressed: () => {
+      var snapshots = this.state.snapshots;
+      var height = parseFloat(
+        snapshots[this.state.selectedSnapshot].position.height
+      );
+      var newHeight = height + 1 + '%';
+      snapshots[this.state.selectedSnapshot].position.height = newHeight;
+      this.setState({ snapshots });
+    },
+    rightPressed: () => {
+      var snapshots = this.state.snapshots;
+      var width = parseFloat(
+        snapshots[this.state.selectedSnapshot].position.width
+      );
+      var newWidth = width + 1 + '%';
+      snapshots[this.state.selectedSnapshot].position.width = newWidth;
+      this.setState({ snapshots });
+    },
+    downPressed: () => {
+      var snapshots = this.state.snapshots;
+      var height = parseFloat(
+        snapshots[this.state.selectedSnapshot].position.height
+      );
+      var newHeight = height - 1 + '%';
+      snapshots[this.state.selectedSnapshot].position.height = newHeight;
+      this.setState({ snapshots });
+    },
+    leftPressed: () => {
+      var snapshots = this.state.snapshots;
+      var width = parseFloat(
+        snapshots[this.state.selectedSnapshot].position.width
+      );
+      var newWidth = width - 1 + '%';
+      snapshots[this.state.selectedSnapshot].position.width = newWidth;
+      this.setState({ snapshots });
+    },
+  };
+
+  opacityTool: Tool = {
+    icon: { name: 'opacity', type: 'MaterialIcons' },
+    upPressed: () => {
+      var snapshots = this.state.snapshots;
+      if (snapshots[this.state.selectedSnapshot].position.opacity < 1) {
+        snapshots[this.state.selectedSnapshot].position.opacity += 0.1;
+      }
+      this.setState({ snapshots });
+    },
+    downPressed: () => {
+      var snapshots = this.state.snapshots;
+      if (snapshots[this.state.selectedSnapshot].position.opacity > 0) {
+        snapshots[this.state.selectedSnapshot].position.opacity -= 0.1;
+      }
+      this.setState({ snapshots });
+    },
+    noHorizontal: true,
+  };
+
+  defaultPosition: SnaphPosition = {
+    x: -50,
+    y: 0,
+    width: '100%',
+    height: '100%',
+    opacity: 0.5,
+  };
+
   state = {
     toolsExpanded: false,
     selectModalVisible: false,
-    presentedSnapshots: [this.props.snapshots[0]],
-    selectionClaim: 0,
+    snapshots: [
+      {
+        snapshot: this.props.snapshots[0],
+        position: this.defaultPosition,
+        reference: null,
+      },
+    ],
+    selectedSnapshot: 0,
+    selectedTool: null,
   };
 
   navBack = () => {
@@ -62,25 +180,71 @@ export default class OpacityBlendModal extends React.Component<Props, State> {
   async componentDidMount() {}
 
   toggleTools = () => {
-    this.setState({ toolsExpanded: !this.state.toolsExpanded });
+    this.setState({
+      toolsExpanded: !this.state.toolsExpanded,
+      selectedTool: null,
+    });
   };
 
-  selectSnapshotOne = () => {
-    this.setState({ selectModalVisible: true, selectionClaim: 0 });
+  selectSnapshot = async index => {
+    this.setState({ selectModalVisible: true, selectedSnapshot: index });
   };
 
-  selectSnapshotTwo = () => {
-    this.setState({ selectModalVisible: true, selectionClaim: 1 });
+  selectWhichSnapshot = index => {
+    this.setState({ selectedSnapshot: index });
   };
 
   snapshotSelected = snapshot => {
     this.setState({ selectModalVisible: false });
-    var newSnaps = this.state.presentedSnapshots;
-    newSnaps[this.state.selectionClaim] = snapshot;
+    var snapshots = this.state.snapshots;
+    var newPosition: SnaphPosition = {
+      x: null,
+      y: null,
+      width: null,
+      height: null,
+      opacity: null,
+    };
+    Object.assign(newPosition, this.defaultPosition);
+    snapshots[this.state.selectedSnapshot] = {
+      snapshot,
+      position: newPosition,
+      reference: null,
+    };
     this.setState({
       ...this.state,
-      presentedSnapshots: newSnaps,
+      snapshots,
     });
+  };
+
+  selectTool = (tool: Tool) => {
+    this.setState({ selectedTool: tool, toolsExpanded: false });
+  };
+
+  ToolBar = ({ index }) => {
+    return (
+      <BlendToolsBar>
+        <ToolbarIcon
+          icon={{ name: 'select1', type: 'AntDesign' }}
+          index={index}
+          onPress={this.selectSnapshot}
+        />
+        <ToolbarIcon
+          icon={this.opacityTool.icon}
+          index={index}
+          onPress={index => this.selectTool(this.opacityTool)}
+        />
+        <ToolbarIcon
+          icon={this.resizeTool.icon}
+          index={index}
+          onPress={index => this.selectTool(this.resizeTool)}
+        />
+        <ToolbarIcon
+          icon={this.moveTool.icon}
+          index={index}
+          onPress={index => this.selectTool(this.moveTool)}
+        />
+      </BlendToolsBar>
+    );
   };
 
   render() {
@@ -101,19 +265,6 @@ export default class OpacityBlendModal extends React.Component<Props, State> {
             <Title>Opacity Blend</Title>
           </Body>
           <Right />
-          {/* <Right>
-            <Button
-              iconRight
-              transparent
-              primary
-              onPress={this.showMoreActionSheet}
-            >
-              <Icon
-                type="SimpleLineIcons"
-                name="options-vertical"
-              />
-            </Button>
-          </Right> */}
         </Header>
         <View
           style={{
@@ -131,17 +282,18 @@ export default class OpacityBlendModal extends React.Component<Props, State> {
             viewBox="0 0 400 800"
             style={{ zIndex: 0 }}
           >
-            {this.state.presentedSnapshots.map(snapshot => {
+            {this.state.snapshots.map((snapshotGroup, index) => {
               return (
                 <Image
-                  x={-60}
-                  y={0}
-                  width="100%"
-                  height="100%"
-                  preserveAspectRatio="xMidYMid meet"
-                  opacity="0.5"
-                  href={{ uri: snapshot.targetImage }}
-                  key={snapshot.id}
+                  x={snapshotGroup.position.x}
+                  y={snapshotGroup.position.y}
+                  width={snapshotGroup.position.width}
+                  height={snapshotGroup.position.height}
+                  preserveAspectRatio={index === 0 ? 'MidXMidY meet' : 'none'}
+                  opacity={snapshotGroup.position.opacity}
+                  href={{ uri: snapshotGroup.snapshot.targetImage }}
+                  key={snapshotGroup.snapshot.id}
+                  ref={component => (snapshotGroup.reference = component)}
                 />
               );
             })}
@@ -155,12 +307,19 @@ export default class OpacityBlendModal extends React.Component<Props, State> {
               width: '100%',
               height: '100%',
               flexDirection: 'row',
-              justifyContent: 'flex-end',
+              justifyContent: 'space-between',
               alignItems: 'flex-end',
               zIndex: 1,
               padding: 10,
             }}
           >
+            <Arrows
+              centerIcon={
+                this.state.selectedTool && this.state.selectedTool.icon
+              }
+              visible={!!this.state.selectedTool}
+              tool={this.state.selectedTool}
+            />
             {!this.state.toolsExpanded && (
               <TouchableOpacity onPress={this.toggleTools}>
                 <View
@@ -179,34 +338,36 @@ export default class OpacityBlendModal extends React.Component<Props, State> {
                 </View>
               </TouchableOpacity>
             )}
+
             {this.state.toolsExpanded && (
               <View
                 style={{
-                  height: 50,
-                  width: '100%',
+                  height: 200,
+                  width: 50,
                   borderRadius: 25,
-                  backgroundColor: 'grey',
+                  backgroundColor: 'rgba(135, 135, 135, 0.5)',
                   justifyContent: 'space-between',
-                  flexDirection: 'row',
+                  flexDirection: 'column',
                   alignItems: 'center',
-                  paddingLeft: 10,
-                  paddingRight: 10,
+                  paddingTop: 15,
                 }}
               >
-                <TouchableOpacity
-                  onPress={this.selectSnapshotOne}
-                  style={{ flexDirection: 'row', alignItems: 'center' }}
+                <ToolbarIcon
+                  index={0}
+                  onPress={this.selectWhichSnapshot}
+                  selected={this.state.selectedSnapshot === 0}
+                  icon={{ name: 'image', type: 'Entypo' }}
                 >
-                  <TextRN style={{ fontWeight: 'bold', margin: 5 }}>1: </TextRN>
-                  <Icon name="image" type="Entypo" />
-                </TouchableOpacity>
-                <TouchableOpacity
-                  onPress={this.selectSnapshotTwo}
-                  style={{ flexDirection: 'row', alignItems: 'center' }}
+                  <this.ToolBar index={0} />
+                </ToolbarIcon>
+                <ToolbarIcon
+                  index={1}
+                  onPress={this.selectWhichSnapshot}
+                  selected={this.state.selectedSnapshot === 1}
+                  icon={{ name: 'image', type: 'Entypo' }}
                 >
-                  <TextRN style={{ fontWeight: 'bold', margin: 5 }}>2: </TextRN>
-                  <Icon name="image" type="Entypo" />
-                </TouchableOpacity>
+                  <this.ToolBar index={1} />
+                </ToolbarIcon>
                 <TouchableOpacity onPress={this.toggleTools}>
                   <Icon name="right" type="AntDesign" />
                 </TouchableOpacity>
