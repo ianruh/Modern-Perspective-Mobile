@@ -67,3 +67,13 @@ export interface Tool {
   noHorizontal?: boolean;
   noVertical?: boolean;
 }
+
+export interface Position {
+  x: number;
+  y: number;
+  width_p?: string; // Percentages
+  height_p?: string;
+  width_px?: number; // Pixel
+  height_px?: number;
+  opacity?: number;
+}

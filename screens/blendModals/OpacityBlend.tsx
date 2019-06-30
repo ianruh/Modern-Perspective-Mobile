@@ -15,6 +15,7 @@ import {
   Snapshot as SnapshotModel,
   Image as ImageModel,
   Tool,
+  Position,
 } from '../../data/models';
 import Backend from '../../data/backend';
 import {
@@ -38,6 +39,7 @@ interface Props extends React.Props<any> {
   user: UserModel;
   image: ImageModel;
   snapshots: SnapshotModel[];
+  onNewBlend: (string) => void;
 }
 
 interface State {
@@ -46,20 +48,15 @@ interface State {
   snapshots: SnapshotGroup[];
   selectedSnapshot: number;
   selectedTool: Tool;
+  cropRectVisible: boolean;
+  cropRectPosition: Position;
+  viewBox: string;
 }
 
 interface SnapshotGroup {
   snapshot: SnapshotModel;
-  position: SnaphPosition;
+  position: Position;
   reference: any;
-}
-
-interface SnaphPosition {
-  x: number;
-  y: number;
-  width: string; // Percentages
-  height: string;
-  opacity: number;
 }
 
 export default class OpacityBlendModal extends React.Component<Props, State> {
@@ -71,64 +68,112 @@ export default class OpacityBlendModal extends React.Component<Props, State> {
   moveTool: Tool = {
     icon: { name: 'move', type: 'Feather' },
     upPressed: () => {
-      var snapshots = this.state.snapshots;
-      snapshots[this.state.selectedSnapshot].position.y -= 5;
-      this.setState({ snapshots });
+      if (!this.state.cropRectVisible) {
+        var snapshots = this.state.snapshots;
+        snapshots[this.state.selectedSnapshot].position.y -= 5;
+        this.setState({ snapshots });
+      } else {
+        var position: Position = this.state.cropRectPosition;
+        position.y -= 5;
+        this.setState({ cropRectPosition: position });
+      }
     },
     rightPressed: () => {
-      var snapshots = this.state.snapshots;
-      snapshots[this.state.selectedSnapshot].position.x += 5;
-      this.setState({ snapshots });
+      if (!this.state.cropRectVisible) {
+        var snapshots = this.state.snapshots;
+        snapshots[this.state.selectedSnapshot].position.x += 5;
+        this.setState({ snapshots });
+      } else {
+        var position: Position = this.state.cropRectPosition;
+        position.x += 5;
+        this.setState({ cropRectPosition: position });
+      }
     },
     downPressed: () => {
-      var snapshots = this.state.snapshots;
-      snapshots[this.state.selectedSnapshot].position.y += 5;
-      this.setState({ snapshots });
+      if (!this.state.cropRectVisible) {
+        var snapshots = this.state.snapshots;
+        snapshots[this.state.selectedSnapshot].position.y += 5;
+        this.setState({ snapshots });
+      } else {
+        var position: Position = this.state.cropRectPosition;
+        position.y += 5;
+        this.setState({ cropRectPosition: position });
+      }
     },
     leftPressed: () => {
-      var snapshots = this.state.snapshots;
-      snapshots[this.state.selectedSnapshot].position.x -= 5;
-      this.setState({ snapshots });
+      if (!this.state.cropRectVisible) {
+        var snapshots = this.state.snapshots;
+        snapshots[this.state.selectedSnapshot].position.x -= 5;
+        this.setState({ snapshots });
+      } else {
+        var position: Position = this.state.cropRectPosition;
+        position.x -= 5;
+        this.setState({ cropRectPosition: position });
+      }
     },
   };
 
   resizeTool: Tool = {
     icon: { name: 'ios-resize', type: 'Ionicons' },
     upPressed: () => {
-      var snapshots = this.state.snapshots;
-      var height = parseFloat(
-        snapshots[this.state.selectedSnapshot].position.height
-      );
-      var newHeight = height + 1 + '%';
-      snapshots[this.state.selectedSnapshot].position.height = newHeight;
-      this.setState({ snapshots });
+      if (!this.state.cropRectVisible) {
+        var snapshots = this.state.snapshots;
+        var height = parseFloat(
+          snapshots[this.state.selectedSnapshot].position.height_p
+        );
+        var newHeight = height + 1 + '%';
+        snapshots[this.state.selectedSnapshot].position.height_p = newHeight;
+        this.setState({ snapshots });
+      } else {
+        var position: Position = this.state.cropRectPosition;
+        position.height_px += 5;
+        this.setState({ cropRectPosition: position });
+      }
     },
     rightPressed: () => {
-      var snapshots = this.state.snapshots;
-      var width = parseFloat(
-        snapshots[this.state.selectedSnapshot].position.width
-      );
-      var newWidth = width + 1 + '%';
-      snapshots[this.state.selectedSnapshot].position.width = newWidth;
-      this.setState({ snapshots });
+      if (!this.state.cropRectVisible) {
+        var snapshots = this.state.snapshots;
+        var width = parseFloat(
+          snapshots[this.state.selectedSnapshot].position.width_p
+        );
+        var newWidth = width + 1 + '%';
+        snapshots[this.state.selectedSnapshot].position.width_p = newWidth;
+        this.setState({ snapshots });
+      } else {
+        var position: Position = this.state.cropRectPosition;
+        position.width_px += 5;
+        this.setState({ cropRectPosition: position });
+      }
     },
     downPressed: () => {
-      var snapshots = this.state.snapshots;
-      var height = parseFloat(
-        snapshots[this.state.selectedSnapshot].position.height
-      );
-      var newHeight = height - 1 + '%';
-      snapshots[this.state.selectedSnapshot].position.height = newHeight;
-      this.setState({ snapshots });
+      if (!this.state.cropRectVisible) {
+        var snapshots = this.state.snapshots;
+        var height = parseFloat(
+          snapshots[this.state.selectedSnapshot].position.height_p
+        );
+        var newHeight = height - 1 + '%';
+        snapshots[this.state.selectedSnapshot].position.height_p = newHeight;
+        this.setState({ snapshots });
+      } else {
+        var position: Position = this.state.cropRectPosition;
+        position.height_px -= 5;
+        this.setState({ cropRectPosition: position });
+      }
     },
     leftPressed: () => {
-      var snapshots = this.state.snapshots;
-      var width = parseFloat(
-        snapshots[this.state.selectedSnapshot].position.width
-      );
-      var newWidth = width - 1 + '%';
-      snapshots[this.state.selectedSnapshot].position.width = newWidth;
-      this.setState({ snapshots });
+      if (!this.state.cropRectVisible) {
+        var snapshots = this.state.snapshots;
+        var width = parseFloat(
+          snapshots[this.state.selectedSnapshot].position.width_p
+        );
+        var newWidth = width - 1 + '%';
+        snapshots[this.state.selectedSnapshot].position.width_p = newWidth;
+        this.setState({ snapshots });
+      } else {
+        var position: Position = this.state.cropRectPosition;
+        position.width_px -= 5;
+        this.setState({ cropRectPosition: position });
+      }
     },
   };
 
@@ -151,12 +196,43 @@ export default class OpacityBlendModal extends React.Component<Props, State> {
     noHorizontal: true,
   };
 
-  defaultPosition: SnaphPosition = {
+  //   cropTool: Tool = {
+  //     icon: { name: 'crop', type: 'MaterialIcons' },
+  //     upPressed: () => {
+  //       var position: Position = this.state.cropRectPosition;
+  //       position.y -= 5;
+  //       this.setState({ cropRectPosition: position });
+  //     },
+  //     rightPressed: () => {
+  //       var position: Position = this.state.cropRectPosition;
+  //       position.x += 5;
+  //       this.setState({ cropRectPosition: position });
+  //     },
+  //     downPressed: () => {
+  //       var position: Position = this.state.cropRectPosition;
+  //       position.y += 5;
+  //       this.setState({ cropRectPosition: position });
+  //     },
+  //     leftPressed: () => {
+  //       var position: Position = this.state.cropRectPosition;
+  //       position.x -= 5;
+  //       this.setState({ cropRectPosition: position });
+  //     },
+  //   };
+
+  defaultSnapshotPosition: Position = {
     x: -50,
     y: 0,
-    width: '100%',
-    height: '100%',
+    width_p: '100%',
+    height_p: '100%',
     opacity: 0.5,
+  };
+
+  defaultCropRectPosition: Position = {
+    x: 10,
+    y: 30,
+    width_px: 380,
+    height_px: 680,
   };
 
   state = {
@@ -165,12 +241,15 @@ export default class OpacityBlendModal extends React.Component<Props, State> {
     snapshots: [
       {
         snapshot: this.props.snapshots[0],
-        position: this.defaultPosition,
+        position: this.defaultSnapshotPosition,
         reference: null,
       },
     ],
     selectedSnapshot: 0,
     selectedTool: null,
+    cropRectVisible: false,
+    cropRectPosition: this.defaultCropRectPosition,
+    viewBox: '0 0 400 800',
   };
 
   navBack = () => {
@@ -191,20 +270,24 @@ export default class OpacityBlendModal extends React.Component<Props, State> {
   };
 
   selectWhichSnapshot = index => {
-    this.setState({ selectedSnapshot: index });
+    if (this.state.selectedSnapshot === index) {
+      this.setState({ selectedSnapshot: -1 });
+    } else {
+      this.setState({ selectedSnapshot: index, cropRectVisible: false });
+    }
   };
 
   snapshotSelected = snapshot => {
     this.setState({ selectModalVisible: false });
     var snapshots = this.state.snapshots;
-    var newPosition: SnaphPosition = {
+    var newPosition: Position = {
       x: null,
       y: null,
-      width: null,
-      height: null,
+      width_p: null,
+      height_p: null,
       opacity: null,
     };
-    Object.assign(newPosition, this.defaultPosition);
+    Object.assign(newPosition, this.defaultSnapshotPosition);
     snapshots[this.state.selectedSnapshot] = {
       snapshot,
       position: newPosition,
@@ -217,7 +300,10 @@ export default class OpacityBlendModal extends React.Component<Props, State> {
   };
 
   selectTool = (tool: Tool) => {
-    this.setState({ selectedTool: tool, toolsExpanded: false });
+    this.setState({
+      selectedTool: tool,
+      toolsExpanded: false,
+    });
   };
 
   ToolBar = ({ index }) => {
@@ -232,20 +318,92 @@ export default class OpacityBlendModal extends React.Component<Props, State> {
           icon={this.opacityTool.icon}
           index={index}
           onPress={index => this.selectTool(this.opacityTool)}
+          disabled={!(this.state.snapshots.length > index)}
         />
         <ToolbarIcon
           icon={this.resizeTool.icon}
           index={index}
           onPress={index => this.selectTool(this.resizeTool)}
+          disabled={!(this.state.snapshots.length > index)}
         />
         <ToolbarIcon
           icon={this.moveTool.icon}
           index={index}
           onPress={index => this.selectTool(this.moveTool)}
+          disabled={!(this.state.snapshots.length > index)}
         />
       </BlendToolsBar>
     );
   };
+
+  CropBar = () => {
+    return (
+      <BlendToolsBar>
+        <ToolbarIcon
+          icon={{ name: 'done', type: 'MaterialIcons' }}
+          onPress={_ => this.saveSnapshot()}
+        />
+        <ToolbarIcon
+          icon={this.resizeTool.icon}
+          onPress={index => this.selectTool(this.resizeTool)}
+        />
+        <ToolbarIcon
+          icon={this.moveTool.icon}
+          onPress={index => this.selectTool(this.moveTool)}
+        />
+      </BlendToolsBar>
+    );
+  };
+
+  saveSnapshot = async () => {
+    const viewBox =
+      this.state.cropRectPosition.x +
+      ' ' +
+      this.state.cropRectPosition.y +
+      ' ' +
+      this.state.cropRectPosition.width_px +
+      ' ' +
+      this.state.cropRectPosition.height_px;
+    await this.setState({ viewBox, cropRectVisible: false });
+
+    /////////////////// Change user ID ///////////////
+    this.svgRef.toDataURL(base64 => {
+      const targetImage = 'data:image/png;base64,' + base64;
+      const newSnapshot = {
+        date: this.formatDate(new Date()),
+        source: '',
+        targetImage: targetImage,
+        imageId: this.props.image.id,
+        userId: 1,
+      };
+      this.props.onNewBlend(newSnapshot);
+    });
+  };
+
+  formatDate = date => {
+    var monthNames = [
+      'January',
+      'February',
+      'March',
+      'April',
+      'May',
+      'June',
+      'July',
+      'August',
+      'September',
+      'October',
+      'November',
+      'December',
+    ];
+
+    var day = date.getDate();
+    var monthIndex = date.getMonth();
+    var year = date.getFullYear();
+
+    return day + ' ' + monthNames[monthIndex] + ' ' + year;
+  };
+
+  svgRef = null;
 
   render() {
     return (
@@ -279,16 +437,17 @@ export default class OpacityBlendModal extends React.Component<Props, State> {
           <Svg
             height="100%"
             width="100%"
-            viewBox="0 0 400 800"
+            viewBox={this.state.viewBox}
             style={{ zIndex: 0 }}
+            ref={component => (this.svgRef = component)}
           >
             {this.state.snapshots.map((snapshotGroup, index) => {
               return (
                 <Image
                   x={snapshotGroup.position.x}
                   y={snapshotGroup.position.y}
-                  width={snapshotGroup.position.width}
-                  height={snapshotGroup.position.height}
+                  width={snapshotGroup.position.width_p}
+                  height={snapshotGroup.position.height_p}
                   preserveAspectRatio={index === 0 ? 'MidXMidY meet' : 'none'}
                   opacity={snapshotGroup.position.opacity}
                   href={{ uri: snapshotGroup.snapshot.targetImage }}
@@ -297,6 +456,17 @@ export default class OpacityBlendModal extends React.Component<Props, State> {
                 />
               );
             })}
+            {this.state.cropRectVisible && (
+              <Rect
+                x={this.state.cropRectPosition.x}
+                y={this.state.cropRectPosition.y}
+                width={this.state.cropRectPosition.width_px}
+                height={this.state.cropRectPosition.height_px}
+                fill="transparent"
+                strokeWidth="3"
+                stroke="rgb(128,0,0)"
+              />
+            )}
           </Svg>
           <View
             style={{
@@ -352,6 +522,18 @@ export default class OpacityBlendModal extends React.Component<Props, State> {
                   paddingTop: 15,
                 }}
               >
+                <ToolbarIcon
+                  icon={{ name: 'crop', type: 'MaterialIcons' }}
+                  onPress={_ => {
+                    this.setState({
+                      cropRectVisible: !this.state.cropRectVisible,
+                      selectedSnapshot: -1,
+                    });
+                  }}
+                  selected={this.state.cropRectVisible}
+                >
+                  <this.CropBar />
+                </ToolbarIcon>
                 <ToolbarIcon
                   index={0}
                   onPress={this.selectWhichSnapshot}

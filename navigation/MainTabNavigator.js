@@ -6,19 +6,22 @@ import {
 } from 'react-navigation';
 
 import TabBarIcon from '../components/TabBarIcon';
-import HomeScreen from '../screens/HomeScreen';
+import MapScreen from '../screens/MapScreen';
 import MainScreen from '../screens/MainScreen';
 import SettingsScreen from '../screens/SettingsScreen';
 import ImageScreen from '../screens/ImageScreen';
 import ProfileScreen from '../screens/ProfileScreen';
 import BlendStylesScreen from '../screens/BlendStylesScreen';
 
-const HomeStack = createStackNavigator({
-  Home: HomeScreen,
+const MapStack = createStackNavigator({
+  Map: MapScreen,
+  Image: ImageScreen,
+  Profile: ProfileScreen,
+  Blend: BlendStylesScreen,
 });
 
-HomeStack.navigationOptions = {
-  tabBarLabel: 'Home',
+MapStack.navigationOptions = {
+  tabBarLabel: 'Map',
   tabBarIcon: ({ focused }) => (
     <TabBarIcon
       focused={focused}
@@ -61,6 +64,6 @@ SettingsStack.navigationOptions = {
 
 export default createBottomTabNavigator({
   MainStack,
-  HomeStack,
+  MapStack,
   SettingsStack,
 });

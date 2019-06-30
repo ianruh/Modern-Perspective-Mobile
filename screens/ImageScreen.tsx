@@ -37,6 +37,7 @@ import {
   Image as ImageModel,
 } from '../data/models';
 import { throws } from 'assert';
+import OpacityBlendModal from './blendModals/OpacityBlend';
 
 interface Props extends React.Props<any> {
   navigation: any;
@@ -50,6 +51,7 @@ interface State {
   modalIndex: number;
   cameraVisible: boolean;
   newSnapshotVisible: boolean;
+  opacityVisible: boolean;
   isSaved: boolean;
   newSnapshot: SnapshotModel;
 }
@@ -67,6 +69,7 @@ export default class ImageScreen extends React.Component<Props, State> {
     modalIndex: 0,
     cameraVisible: false,
     newSnapshotVisible: false,
+    opacityVisible: false,
     isSaved: false,
     newSnapshot: null,
   };
@@ -146,30 +149,43 @@ export default class ImageScreen extends React.Component<Props, State> {
   };
 
   newBlend = () => {
-    this.props.navigation.push('Blend', {
-      image: this.state.image,
-      user: this.state.user,
-      snapshots: this.state.snapshots,
-    });
+    // this.props.navigation.push('Blend', {
+    //   image: this.state.image,
+    //   user: this.state.user,
+    //   snapshots: this.state.snapshots,
+    // });
+    this.setState({ opacityVisible: true });
   };
 
   componentDidMount = async () => {
     const imageId = this.props.navigation.getParam('imageId', '');
-    Backend.getImage(imageId).then(async imageWeird => {
-      const image: any = imageWeird;
-      await this.setState({ snapshots: [] });
-      image.snapshots.forEach(id => {
-        this.loadSnapshot(id);
+    Backend.getImage(imageId)
+      .then(async imageWeird => {
+        const image: any = imageWeird;
+        await this.setState({ snapshots: [] });
+        image.snapshots.forEach(id => {
+          this.loadSnapshot(id);
+        });
+        this.setState({ image });
+        Backend.getUser(image.userId)
+          .then(userWeird => {
+            const user: any = userWeird;
+            this.setState({ user });
+          })
+          .catch(error => {
+            console.log(error);
+          });
+      })
+      .catch(error => {
+        console.log(error);
       });
-      this.setState({ image });
-      Backend.getUser(image.userId).then(userWeird => {
-        const user: any = userWeird;
-        this.setState({ user });
+    Storage.hasImage(imageId)
+      .then(result => {
+        this.setState({ isSaved: result });
+      })
+      .catch(error => {
+        console.log(error);
       });
-    });
-    Storage.hasImage(imageId).then(result => {
-      this.setState({ isSaved: result });
-    });
   };
 
   loadSnapshot = async id => {
@@ -203,6 +219,10 @@ export default class ImageScreen extends React.Component<Props, State> {
   closeNewSnapshotModal = () => {
     this.setState({ newSnapshotVisible: false });
     this.forceUpdate();
+  };
+
+  closeOpacityBlendModal = () => {
+    this.setState({ opacityVisible: false });
   };
 
   newSnapshotTaken = (snapshot: SnapshotModel) => {
@@ -264,6 +284,16 @@ export default class ImageScreen extends React.Component<Props, State> {
             user={this.state.user}
             close={this.closeNewSnapshotModal}
             snapshot={this.state.newSnapshot}
+          />
+        )}
+        {this.state.opacityVisible && (
+          <OpacityBlendModal
+            user={this.state.user}
+            image={this.state.image}
+            snapshots={this.state.snapshots}
+            visible={this.state.opacityVisible}
+            close={this.closeOpacityBlendModal}
+            onNewBlend={this.newSnapshotTaken}
           />
         )}
         <ScrollView style={styles.container}>
@@ -347,16 +377,17 @@ export default class ImageScreen extends React.Component<Props, State> {
                     longitudeDelta: 0.0421,
                   }}
                 >
-                  {/* {this.state.image.lat !== 0 && (
-                    <Marker
+                  {this.state.image.lat !== 0 && (
+                    <MapView.Marker
                       coordinate={{
                         latitude: this.state.image.lat,
                         longitude: this.state.image.lng,
                       }}
                       title=""
                       description=""
+                      pinColor="blue"
                     />
-                  )} */}
+                  )}
                 </MapView>
               )}
             </Row>

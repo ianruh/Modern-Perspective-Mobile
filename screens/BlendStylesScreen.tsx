@@ -87,6 +87,7 @@ export default class BlendStylesScreen extends React.Component<Props, State> {
             snapshots={this.state.snapshots}
             visible={this.state.opacityVisible}
             close={this.closeOpacityBlend}
+            onNewBlend={_ => {}}
           />
         )}
       </View>

@@ -22,11 +22,14 @@ import Divider from './Divider';
 import UserCard from './UserCard';
 import Backend from '../data/backend';
 import { BlurView } from 'expo';
+import { Image as ImageModel } from '../data/models';
 
 interface Props extends React.Props<any> {
   navigation: any;
   imageId: string;
   hideUser?: boolean;
+  height: number;
+  onLoad?: (ImageModel) => void;
 }
 
 export class ImageCardLarge extends React.Component<Props, any> {
@@ -41,16 +44,27 @@ export class ImageCardLarge extends React.Component<Props, any> {
     Backend.getImage(this.props.imageId)
       .then(imageStrict => {
         this.setState({ image: imageStrict });
+        if (this.props.onLoad) {
+          this.props.onLoad(imageStrict);
+        }
         const image: any = imageStrict;
-        Backend.getUser(image.userId).then(user => {
-          this.setState({ user });
-        });
-        Backend.getSnapshot(image.snapshots['0']).then(snapshot => {
-          const snap: any = snapshot;
-          this.setState({
-            coverImage: snap.targetImage,
+        Backend.getUser(image.userId)
+          .then(user => {
+            this.setState({ user });
+          })
+          .catch(error => {
+            console.log(error);
           });
-        });
+        Backend.getSnapshot(image.snapshots['0'])
+          .then(snapshot => {
+            const snap: any = snapshot;
+            this.setState({
+              coverImage: snap.targetImage,
+            });
+          })
+          .catch(error => {
+            console.log(error);
+          });
       })
       .catch(error => {
         console.log(error);
@@ -81,7 +95,7 @@ export class ImageCardLarge extends React.Component<Props, any> {
     // debugger;
     return (
       <Root>
-        <Content style={{ backgroundColor: '#fff' }}>
+        <Content>
           <View style={{ position: 'relative' }}>
             {!this.state.image && (
               <View
@@ -105,7 +119,7 @@ export class ImageCardLarge extends React.Component<Props, any> {
                 <View
                   style={{
                     position: 'relative',
-                    height: 250,
+                    height: this.props.height,
                     flex: 1,
                     backgroundColor: 'transparent',
                     borderTopLeftRadius: 10,
@@ -116,6 +130,7 @@ export class ImageCardLarge extends React.Component<Props, any> {
                     style={{
                       position: 'absolute',
                       width: '100%',
+                      maxWidth: 500,
                       height: '100%',
                       top: 0,
                       left: 0,
@@ -182,7 +197,7 @@ export class ImageCardLarge extends React.Component<Props, any> {
                         : 'data:image/jpg;base64,',
                     }}
                     style={{
-                      height: 250,
+                      height: this.props.height,
                       width: '100%',
                       flex: 1,
                       position: 'absolute',

@@ -53,12 +53,20 @@ export default class MainScreen extends React.Component<Props, any> {
       ),
     ];
 
-    Backend.getUser('1').then(user => {
-      this.setState({ user });
-    });
-    Backend.queryImages(null).then(images => {
-      this.setState({ images });
-    });
+    Backend.getUser('1')
+      .then(user => {
+        this.setState({ user });
+      })
+      .catch(error => {
+        console.log(error);
+      });
+    Backend.queryImages(null)
+      .then(images => {
+        this.setState({ images });
+      })
+      .catch(error => {
+        console.log(error);
+      });
   }
 
   componentDidFocus = data => {
@@ -68,6 +76,9 @@ export default class MainScreen extends React.Component<Props, any> {
       })
       .then(() => {
         this.setState({ refreshing: false });
+      })
+      .catch(error => {
+        console.log(error);
       });
   };
 
@@ -171,6 +182,7 @@ export default class MainScreen extends React.Component<Props, any> {
                       key={item}
                       navigation={this.props.navigation}
                       hideUser
+                      height={250}
                     />
                   );
                 })}

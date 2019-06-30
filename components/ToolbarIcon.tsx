@@ -7,6 +7,7 @@ interface Props extends React.Props<any> {
   onPress: (index) => void;
   selected?: boolean;
   children?: any;
+  disabled?: boolean;
   icon: {
     name: string;
     type?:
@@ -31,8 +32,13 @@ export default class ToolbarIcon extends React.Component<Props, any> {
     return (
       <View style={{ position: 'relative' }}>
         <TouchableOpacity
-          onPress={() => this.props.onPress(this.props.index)}
+          onPress={() => {
+            if (!this.props.disabled) {
+              this.props.onPress(this.props.index);
+            }
+          }}
           style={{ flexDirection: 'row', alignItems: 'center' }}
+          disabled={this.props.disabled}
         >
           <View
             style={{
@@ -45,7 +51,11 @@ export default class ToolbarIcon extends React.Component<Props, any> {
               borderRadius: 8,
             }}
           >
-            <Icon name={this.props.icon.name} type={this.props.icon.type} />
+            <Icon
+              name={this.props.icon.name}
+              type={this.props.icon.type}
+              color={this.props.disabled ? 'grey' : 'black'}
+            />
           </View>
         </TouchableOpacity>
         {this.props.selected && this.props.children}
