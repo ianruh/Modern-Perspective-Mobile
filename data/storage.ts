@@ -6,6 +6,8 @@ import {
   ImageStore,
   SnapshotStore,
   UserStore,
+  Collection,
+  CollectionStore,
 } from './Models';
 import { AsyncStorage } from 'react-native';
 
@@ -22,6 +24,7 @@ interface StoreIndex {
   imageIDs: string[];
   snapshotIDs: string[];
   userIDs: string[];
+  collectionIDs: string[];
 }
 
 interface Settings {
@@ -29,6 +32,87 @@ interface Settings {
 }
 
 export default class Storage {
+  ///////////////// Colelctions ///////////////////
+
+  static getCollection = async (id: string) => {
+    const result = await AsyncStorage.getItem('collection:' + id);
+    if (result) {
+      console.log('Got collection from storage: ' + id);
+      return JSON.parse(result).collection;
+    } else {
+      throw new Error('Unable to fetch collection.');
+    }
+  };
+
+  static hasCollection = async (id: string) => {
+    const result = await AsyncStorage.getItem('collection:' + id);
+    if (result) {
+      console.log('Has collection: ' + id);
+      return true;
+    } else {
+      console.log('Does not have collection: ' + id);
+      return false;
+    }
+  };
+
+  static storeCollection = async (collection: Collection) => {
+    try {
+      var index: StoreIndex = await Storage.getIndex();
+      const collectionStore: CollectionStore = {
+        collection: collection,
+        dateUpdated: Date.now() + '',
+      };
+      if (!(await Storage.hasCollection(collection.id))) {
+        console.log('Add collection to index: ' + collection.id);
+        const newIndex = {
+          ...index,
+          collectionIDs: index.collectionIDs.concat([collection.id]),
+        };
+        AsyncStorage.setItem('index', JSON.stringify(newIndex));
+      }
+      AsyncStorage.setItem(
+        'collection:' + collection.id,
+        JSON.stringify(collectionStore)
+      );
+      console.log('Stored collection: ' + collection.id);
+    } catch (error) {
+      throw new Error('Unable to insert collection.');
+    }
+  };
+
+  static removeCollection = async (collectionId: string) => {
+    await AsyncStorage.removeItem('collection:' + collectionId).then(
+      async () => {
+        var index: StoreIndex = await Storage.getIndex();
+        const newIndex = {
+          ...index,
+          collectionIDs: index.collectionIDs.filter(value => {
+            if (value != collectionId) {
+              return true;
+            } else {
+              return false;
+            }
+          }),
+        };
+        console.log('Removed collection: ' + collectionId);
+        await AsyncStorage.setItem('index', JSON.stringify(newIndex));
+      }
+    );
+  };
+
+  static getCollections = async () => {
+    try {
+      var index: StoreIndex = await Storage.getIndex();
+      console.log('Store has collections: ' + index.collectionIDs);
+      console.log('Index: ' + JSON.stringify(index));
+      return index.collectionIDs;
+    } catch (error) {
+      throw new Error('Unable to get collections');
+    }
+  };
+
+  /////////////////////////////////////////////////
+
   static getSnapshot = async (id: string) => {
     const result = await AsyncStorage.getItem('snapshot:' + id);
     if (result) {
@@ -205,6 +289,7 @@ export default class Storage {
           imageIDs: [],
           snapshotIDs: [],
           userIDs: [],
+          collectionIDs: [],
         };
         await AsyncStorage.setItem('index', JSON.stringify(index));
         return index;

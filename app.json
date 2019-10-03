@@ -4,8 +4,8 @@
     "slug": "pictures-mobile",
     "version": "1.0.0",
     "privacy": "public",
-    "sdkVersion": "32.0.0",
-    "platforms": ["ios", "android"],
+    "sdkVersion": "33.0.0",
+    "platforms": ["ios", "android", "web"],
     "icon": "./assets/images/icon.png",
     "splash": {
       "image": "./assets/images/splash.png",

@@ -5,18 +5,37 @@ export interface Image {
   lat: number;
   lng: number;
   userId: string;
+  collections?: string[];
   snapshots: string[];
-  temp: boolean;
+  coverSnapshotId?: string;
+  temp?: boolean;
 }
 
 export interface Snapshot {
   id: string;
   date: string;
   source: string;
+  colorized: boolean;
   targetImage: string;
   imageId: string;
   userId: string;
-  temp: boolean;
+  temp?: boolean;
+  isCover?: boolean;
+}
+
+export interface Collection {
+  id: string;
+  name: string;
+  description: string;
+  dateCreated: string;
+  images: string[];
+  lat: number;
+  lng: number;
+  coverImageId: string;
+  userId: string;
+  time?: number;
+  distance?: number;
+  isTour: boolean;
 }
 
 export interface User {
@@ -25,6 +44,7 @@ export interface User {
   thumbnail: string;
   images: string[];
   snapshots: string[];
+  collections: string[];
 }
 
 export interface ImageStore {
@@ -39,6 +59,11 @@ export interface SnapshotStore {
 
 export interface UserStore {
   user: User;
+  dateUpdated: string;
+}
+
+export interface CollectionStore {
+  collection: Collection;
   dateUpdated: string;
 }
 

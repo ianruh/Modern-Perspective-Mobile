@@ -1,5 +1,5 @@
 global.localOnly = false;
 
 export default {
-  apiHost: 'http://192.168.0.7:5000',
+  apiHost: 'http://127.0.0.1:5000',
 };

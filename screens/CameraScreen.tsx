@@ -131,6 +131,7 @@ export default class CameraScreen extends React.Component<Props, any> {
           targetImage: targetImage,
           imageId: this.state.image.id,
           userId: this.state.user.id,
+          colorized: true,
         };
         this.props.pictureTaken(newSnapshot);
       });

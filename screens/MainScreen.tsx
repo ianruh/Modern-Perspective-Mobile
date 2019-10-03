@@ -174,7 +174,13 @@ export default class MainScreen extends React.Component<Props, any> {
             }
           >
             {this.state.images && this.state.images.length != 0 && (
-              <View>
+              <View
+                style={{
+                  flexDirection: 'row',
+                  justifyContent: 'flex-start',
+                  flexWrap: 'wrap',
+                }}
+              >
                 {this.state.images.map(item => {
                   return (
                     <ImageCardLarge

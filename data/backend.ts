@@ -73,6 +73,33 @@ export default class Backend {
     return images;
   };
 
+  static queryCollections = async (options: QueryOptions) => {
+    var collections: string[];
+    if ((await Storage.getSettings()).localOnly) {
+      collections = await Storage.getCollections();
+    } else {
+      // Construct the request url
+      const url = Env.apiHost + '/api/collections';
+
+      // Make the request
+      collections = await fetch(url)
+        .then(function(response) {
+          return response.json();
+        })
+        .then(function(data: string[]) {
+          return data;
+        });
+    }
+
+    // Parse the options for the query
+    if (options) {
+      // TODO: Fix
+      console.log('with options, but actually ignored');
+    }
+
+    return collections;
+  };
+
   static getSnapshot = async (id: string) => {
     return Cache.getSnapshot(id)
       .catch(() => {
@@ -122,7 +149,7 @@ export default class Backend {
       return tempImage;
     } else {
       // Construct the request url
-      const url = Env.apiHost + '/api/new/image';
+      const url = Env.apiHost + '/api/image/new';
 
       // Make the request
       return fetch(url, {
@@ -146,7 +173,7 @@ export default class Backend {
       return tempSnapshot;
     } else {
       // Construct the request url
-      const url = Env.apiHost + '/api/new/snapshot';
+      const url = Env.apiHost + '/api/snapshot/new';
 
       // Make the request
       return fetch(url, {

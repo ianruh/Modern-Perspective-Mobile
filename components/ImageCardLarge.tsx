@@ -94,125 +94,127 @@ export class ImageCardLarge extends React.Component<Props, any> {
   render() {
     // debugger;
     return (
-      <Root>
-        <Content>
-          <View style={{ position: 'relative' }}>
-            {!this.state.image && (
+      <View
+        style={{
+          flexGrow: 1,
+          flexShrink: 0,
+          flexBasis: 300,
+        }}
+      >
+        <View style={{ position: 'relative' }}>
+          {!this.state.image && (
+            <View
+              style={{
+                position: 'absolute',
+                top: 0,
+                left: 0,
+                flex: 1,
+                opacity: 0.3,
+                justifyContent: 'center',
+                alignItems: 'center',
+              }}
+            >
+              <ActivityIndicator size="small" color="#00ff00" />
+            </View>
+          )}
+          <View
+            style={{ margin: 10, borderRadius: 10, backgroundColor: 'grey' }}
+          >
+            <TouchableOpacity onPress={this.navToImage}>
               <View
                 style={{
-                  position: 'absolute',
-                  top: 0,
-                  left: 0,
+                  position: 'relative',
+                  height: this.props.height,
                   flex: 1,
-                  opacity: 0.3,
-                  justifyContent: 'center',
-                  alignItems: 'center',
+                  backgroundColor: 'transparent',
+                  borderTopLeftRadius: 10,
+                  borderTopRightRadius: 10,
                 }}
               >
-                <ActivityIndicator size="small" color="#00ff00" />
-              </View>
-            )}
-            <View
-              style={{ margin: 10, borderRadius: 10, backgroundColor: 'grey' }}
-            >
-              <TouchableOpacity onPress={this.navToImage}>
                 <View
                   style={{
-                    position: 'relative',
-                    height: this.props.height,
-                    flex: 1,
-                    backgroundColor: 'transparent',
+                    position: 'absolute',
+                    width: '100%',
+                    height: '100%',
+                    top: 0,
+                    left: 0,
+                    flexDirection: 'column',
+                    justifyContent: 'space-between',
+                    zIndex: 1,
                     borderTopLeftRadius: 10,
                     borderTopRightRadius: 10,
                   }}
                 >
-                  <View
+                  <BlurView
+                    tint="dark"
+                    intensity={60}
                     style={{
-                      position: 'absolute',
+                      height: 60,
                       width: '100%',
-                      maxWidth: 500,
-                      height: '100%',
-                      top: 0,
-                      left: 0,
-                      flexDirection: 'column',
+                      flexDirection: 'row',
                       justifyContent: 'space-between',
-                      zIndex: 1,
+                      alignItems: 'center',
+                      backgroundColor: 'transparent',
                       borderTopLeftRadius: 10,
                       borderTopRightRadius: 10,
                     }}
                   >
-                    <BlurView
-                      tint="dark"
-                      intensity={60}
+                    <View
                       style={{
-                        height: 60,
-                        width: '100%',
-                        flexDirection: 'row',
-                        justifyContent: 'space-between',
-                        alignItems: 'center',
-                        backgroundColor: 'transparent',
+                        paddingLeft: 15,
                         borderTopLeftRadius: 10,
                         borderTopRightRadius: 10,
                       }}
                     >
-                      <View
-                        style={{
-                          paddingLeft: 15,
-                          borderTopLeftRadius: 10,
-                          borderTopRightRadius: 10,
-                        }}
-                      >
-                        <Text style={{ fontWeight: 'bold', color: 'white' }}>
-                          {this.state.image && this.state.image.title}
-                        </Text>
-                        <Text note style={{ color: 'white' }}>
-                          {this.state.image &&
-                            this.state.image.description.substring(0, 30) +
-                              '...'}
-                        </Text>
-                      </View>
-                      <Button
-                        iconRight
-                        transparent
-                        primary
-                        onPress={this.showActionSheet}
-                      >
-                        <Icon type="SimpleLineIcons" name="options-vertical" />
-                      </Button>
-                    </BlurView>
+                      <Text style={{ fontWeight: 'bold', color: 'white' }}>
+                        {this.state.image && this.state.image.title}
+                      </Text>
+                      <Text note style={{ color: 'white' }}>
+                        {this.state.image &&
+                          this.state.image.description.substring(0, 30) + '...'}
+                      </Text>
+                    </View>
+                    <Button
+                      iconRight
+                      transparent
+                      primary
+                      onPress={this.showActionSheet}
+                    >
+                      <Icon type="SimpleLineIcons" name="options-vertical" />
+                    </Button>
+                  </BlurView>
 
-                    {!this.props.hideUser && this.state.user && (
-                      <View>
-                        <UserCard
-                          user={this.state.user}
-                          navigation={this.props.navigation}
-                        />
-                      </View>
-                    )}
-                  </View>
-                  <Image
-                    source={{
-                      uri: this.state.coverImage
-                        ? this.state.coverImage
-                        : 'data:image/jpg;base64,',
-                    }}
-                    style={{
-                      height: this.props.height,
-                      width: '100%',
-                      flex: 1,
-                      position: 'absolute',
-                      top: 0,
-                      left: 0,
-                      zIndex: 0,
-                      borderRadius: 10,
-                    }}
-                  />
+                  {!this.props.hideUser && this.state.user && (
+                    <View>
+                      <UserCard
+                        user={this.state.user}
+                        navigation={this.props.navigation}
+                      />
+                    </View>
+                  )}
                 </View>
-              </TouchableOpacity>
-            </View>
+                <Image
+                  source={{
+                    uri: this.state.coverImage
+                      ? this.state.coverImage
+                      : 'data:image/jpg;base64,',
+                  }}
+                  style={{
+                    height: this.props.height,
+                    width: '100%',
+                    flex: 1,
+                    position: 'absolute',
+                    top: 0,
+                    left: 0,
+                    zIndex: 0,
+                    borderRadius: 10,
+                  }}
+                />
+              </View>
+            </TouchableOpacity>
           </View>
-        </Content>
-      </Root>
+        </View>
+      </View>
     );
   }
 }

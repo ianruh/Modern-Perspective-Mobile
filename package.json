@@ -12,10 +12,10 @@
   },
   "dependencies": {
     "@expo/samples": "2.1.1",
-    "expo": "^32.0.0",
+    "expo": "^33.0.0",
     "native-base": "^2.12.1",
     "react": "16.5.0",
-    "react-native": "https://github.com/expo/react-native/archive/sdk-32.0.0.tar.gz",
+    "react-native": "https://github.com/expo/react-native/archive/sdk-33.0.0.tar.gz",
     "react-native-image-zoom-viewer": "^2.2.26",
     "react-native-snap-carousel": "^3.7.5",
     "react-navigation": "^3.0.9"
@@ -26,7 +26,7 @@
     "@types/react": "^16.8.18",
     "@types/react-native": "^0.57.58",
     "babel-preset-expo": "^5.0.0",
-    "jest-expo": "^32.0.0",
+    "jest-expo": "^33.0.0",
     "react-native-typescript-transformer": "^1.2.12",
     "reactotron-react-native": "^3.6.4",
     "typescript": "^3.4.5"

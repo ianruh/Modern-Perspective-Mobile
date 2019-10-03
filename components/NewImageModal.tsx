@@ -79,7 +79,6 @@ export default class NewImageModal extends React.Component<Props, State> {
   };
 
   onSave = () => {
-    debugger;
     if (
       this.state.titleValid &&
       this.state.descriptionValid &&
@@ -128,7 +127,7 @@ export default class NewImageModal extends React.Component<Props, State> {
       title: '',
       lat: 0,
       lng: 0,
-      userId: user.id,
+      userId: '1',
       id: null,
       snapshots: [],
       temp: null,
@@ -141,6 +140,8 @@ export default class NewImageModal extends React.Component<Props, State> {
       userId: user.id,
       id: null,
       temp: null,
+      colorized: false,
+      isCover: true,
     };
     this.setState({ image, user, snapshot });
     this._getLocationPermission();
